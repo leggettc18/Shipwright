@@ -523,6 +523,7 @@ std::unordered_map<std::string, RandomizerSettingKey> SpoilerfileSettingNameToEn
     { "Open Settings:Random Ganon's Trials", RSK_RANDOM_TRIALS },
     { "Open Settings:Trial Count", RSK_TRIAL_COUNT },
     { "Shuffle Settings:Shuffle Gerudo Card", RSK_SHUFFLE_GERUDO_MEMBERSHIP_CARD },
+    { "Shuffle Settings:Shuffle Scrubs", RSK_SHUFFLE_SCRUBS },
     { "Shuffle Settings:Shuffle Cows", RSK_SHUFFLE_COWS },
     { "Shuffle Settings:Tokensanity", RSK_SHUFFLE_TOKENS },
     { "Shuffle Settings:Shuffle Adult Trade", RSK_SHUFFLE_ADULT_TRADE },
@@ -756,6 +757,13 @@ void Randomizer::ParseRandomizerSettingsFile(const char* spoilerFileName) {
                     case RSK_CUCCO_COUNT:
                         numericValueString = it.value();
                         gSaveContext.randoSettings[index].value = std::stoi(numericValueString);
+                        break;
+                    case RSK_SHUFFLE_SCRUBS:
+                        if(it.value() == "Off") {
+                            gSaveContext.randoSettings[index].value = 0;            
+                        } else if(it.value() == "Affordable") {
+                            gSaveContext.randoSettings[index].value = 1;
+                        }
                         break;
                     case RSK_SHUFFLE_GERUDO_MEMBERSHIP_CARD:
                     case RSK_SHUFFLE_COWS:
@@ -2166,10 +2174,6 @@ RandomizerCheck Randomizer::GetCheckFromActor(s16 sceneNum, s16 actorId, s16 act
             break;
         case 62:
             switch (actorParams) {
-                case 2:
-                    return RC_HF_DEKU_SCRUB_GROTTO;
-                case 10:
-                    return RC_LW_DEKU_SCRUB_GROTTO_FRONT;
                 case 22988:
                     return RC_KF_STORMS_GROTTO_CHEST;
                 case -22988:
@@ -2434,8 +2438,6 @@ RandomizerCheck Randomizer::GetCheckFromActor(s16 sceneNum, s16 actorId, s16 act
             break;
         case 91:
             switch (actorParams) {
-                case 9:
-                    return RC_LW_DEKU_SCRUB_NEAR_BRIDGE;
                 case 14365:
                     return RC_LW_GOSSIP_STONE;
                 case 27905:
@@ -2600,6 +2602,7 @@ void GenerateRandomizerImgui() {
     cvarSettings[RSK_SHUFFLE_DUNGEON_REWARDS] = CVar_GetS32("gRandomizeShuffleDungeonReward", 0);
     cvarSettings[RSK_SHUFFLE_SONGS] = CVar_GetS32("gRandomizeShuffleSongs", 0);
     cvarSettings[RSK_SHUFFLE_TOKENS] = CVar_GetS32("gRandomizeShuffleTokens", 0);
+    cvarSettings[RSK_SHUFFLE_SCRUBS] = CVar_GetS32("gRandomizeShuffleScrubs", 0);
     cvarSettings[RSK_SHUFFLE_COWS] = CVar_GetS32("gRandomizeShuffleCows", 0);
     cvarSettings[RSK_SHUFFLE_ADULT_TRADE] = CVar_GetS32("gRandomizeShuffleAdultTrade", 0);
     cvarSettings[RSK_SKIP_CHILD_ZELDA] = CVar_GetS32("gRandomizeSkipChildZelda", 0);
@@ -2701,7 +2704,8 @@ void DrawRandoEditor(bool& open) {
     const char* randoShuffleTokens[4] = { "Off", "Dungeons", "Overworld", "All Tokens" };
     const char* randoShopsanity[7] = { "Off", "0", "1", "2", "3", "4", "Random" };
     const char* randoTokensanity[4] = { "Off", "Dungeons", "Overworld", "All Tokens" };
-    const char* randoShuffleScrubs[4] = { "Off", "Affordable", "Expensive", "Random Prices" };
+    // const char* randoShuffleScrubs[4] = { "Off", "Affordable", "Expensive", "Random Prices" };
+    const char* randoShuffleScrubs[2] = { "Off", "Affordable" };
     const char* randoShuffleCows[2] = { "Off", "On" };
     const char* randoShuffleKokiriSword[2] = { "Off", "On" };
     const char* randoShuffleOcarinas[2] = { "Off", "On" };
@@ -3123,6 +3127,16 @@ void DrawRandoEditor(bool& open) {
                         SohImGui::EnhancementCheckbox("Nighttime GS expect Sun's Song", "gRandomizeGsExpectSunsSong");
                         InsertHelpHoverText("All Golden Skulltulas that require nighttime to appear will only be "
                                             "expected to be collected after getting Sun's Song.");
+                        PaddedSeparator();
+
+                        // Shuffle Scrubs
+                        ImGui::Text(Settings::Scrubsanity.GetName().c_str());
+                        InsertHelpHoverText(
+                            "Off - Scrubs will not be shuffled.\n"
+                            "\n"
+                            "Affordable - Scrubs will be shuffled and their item will cost 10 rupees.\n"
+                        );
+                        SohImGui::EnhancementCombobox("gRandomizeShuffleScrubs", randoShuffleScrubs, 2, 0);
                         PaddedSeparator();
 
                         // Shuffle Cows

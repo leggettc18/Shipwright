@@ -1701,9 +1701,8 @@ extern "C" int CustomMessage_RetrieveIfExists(GlobalContext* globalCtx) {
             } else {
                 messageEntry = Randomizer_GetGanonHintText();
             }
-        } else if (textId == TEXT_SCRUB_POH || textId == TEXT_SCRUB_STICK_UPGRADE || textId == TEXT_SCRUB_NUT_UPGRADE) {
-            ScrubIdentity scrubIdentity = Randomizer_IdentifyScrub(globalCtx->sceneNum, msgCtx->talkActor->params, gSaveContext.respawn[RESPAWN_MODE_RETURN].data & ((1 << 8) - 1));
-            messageEntry = Randomizer_GetScrubMessage(scrubIdentity.itemPrice);
+        } else if (textId >= 0x9000 || textId <= 0x905F) {
+            messageEntry = Randomizer_GetScrubMessage((textId & ((1 << 8) - 1)));
         }
     }
     if (textId == TEXT_GS_NO_FREEZE || textId == TEXT_GS_FREEZE) {

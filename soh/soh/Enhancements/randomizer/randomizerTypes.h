@@ -1022,5 +1022,6 @@ typedef struct ScrubIdentity {
     int scrubId;
     RandomizerCheck randomizerCheck;
     GetItemID getItemId;
-    uint16_t itemPrice;
+    int16_t itemPrice;
+    bool isShuffled;
 } ScrubIdentity;

@@ -165,20 +165,22 @@ void EnDns_Init(Actor* thisx, GlobalContext* globalCtx) {
     this->actor.speedXZ = 0.0f;
     this->actor.velocity.y = 0.0f;
     this->actor.gravity = -1.0f;
-    if (!gSaveContext.n64ddFlag) {
-        this->actor.textId = D_809F040C[this->actor.params];
-        this->dnsItemEntry = sItemEntries[this->actor.params];
-    } else {
-        this->actor.textId = 0x10A2;
+    this->actor.textId = D_809F040C[this->actor.params];
+    this->dnsItemEntry = sItemEntries[this->actor.params];
+    if (gSaveContext.n64ddFlag) {
         this->scrubIdentity = Randomizer_IdentifyScrub(globalCtx->sceneNum, this->actor.params, gSaveContext.respawn[RESPAWN_MODE_RETURN].data & ((1 << 8) - 1));
-        this->dnsItemEntry = sItemEntries[this->actor.params];
-        this->dnsItemEntry->getItemId = this->scrubIdentity.getItemId;
-        this->dnsItemEntry->purchaseableCheck = EnDns_RandomizerPurchaseableCheck;
-        this->dnsItemEntry->setRupeesAndFlags = EnDns_RandomizerPurchase;
-        this->dnsItemEntry->itemAmount = 1;
-        this->dnsItemEntry->itemPrice = this->scrubIdentity.itemPrice;
-        // TODO: I would rather do this, but this doesn't seem to work and I don't understand why.
-        // this->dnsItemEntry = (DnsItemEntry*){ this->scrubIdentity.itemPrice, 1, this->scrubIdentity.getItemId, EnDns_RandomizerPurchaseableCheck, EnDns_RandomizerPurchase };
+
+        if (Randomizer_GetSettingValue(RSK_SHUFFLE_SCRUBS) == 1 || Randomizer_GetSettingValue(RSK_SHUFFLE_SCRUBS) == 3 && this->scrubIdentity.itemPrice != -1) {
+            this->dnsItemEntry->itemPrice = this->scrubIdentity.itemPrice;
+        }
+
+        if (this->scrubIdentity.isShuffled) {
+            this->dnsItemEntry->getItemId = this->scrubIdentity.getItemId;
+            this->dnsItemEntry->purchaseableCheck = EnDns_RandomizerPurchaseableCheck;
+            this->dnsItemEntry->setRupeesAndFlags = EnDns_RandomizerPurchase;
+            this->dnsItemEntry->itemAmount = 1;
+            this->actor.textId = 0x9000 + this->dnsItemEntry->itemPrice;
+        }
     }
     this->actionFunc = EnDns_SetupWait;
 }
@@ -395,7 +397,7 @@ void EnDns_Talk(EnDns* this, GlobalContext* globalCtx) {
 }
 
 void func_809EFDD0(EnDns* this, GlobalContext* globalCtx) {
-    if (!gSaveContext.n64ddFlag) {
+    if (!gSaveContext.n64ddFlag || !this->scrubIdentity.isShuffled) {
         if (this->actor.params == 0x9) {
             if (CUR_UPG_VALUE(UPG_STICKS) < 2) {
                 func_8002F434(&this->actor, globalCtx, GI_STICK_UPGRADE_20, 130.0f, 100.0f);
@@ -508,10 +510,9 @@ void EnDns_Update(Actor* thisx, GlobalContext* globalCtx) {
     s16 pad;
 
     this->dustTimer++;
-    if (!gSaveContext.n64ddFlag) {
-        this->actor.textId = D_809F040C[this->actor.params];
-    } else {
-        this->actor.textId = 0x10A2;
+    this->actor.textId = D_809F040C[this->actor.params];
+    if (gSaveContext.n64ddFlag && this->scrubIdentity.isShuffled) {
+        this->actor.textId = 0x9000 + this->dnsItemEntry->itemPrice;
     }
     Actor_SetFocus(&this->actor, 60.0f);
     Actor_SetScale(&this->actor, 0.01f);

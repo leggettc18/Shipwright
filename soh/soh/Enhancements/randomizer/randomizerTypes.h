@@ -1019,9 +1019,9 @@ typedef enum {
 } RandomizerSettingKey;
 
 typedef struct ScrubIdentity {
-    int scrubId;
+    int32_t scrubId;
     RandomizerCheck randomizerCheck;
     GetItemID getItemId;
-    int16_t itemPrice;
+    int32_t itemPrice;
     bool isShuffled;
 } ScrubIdentity;

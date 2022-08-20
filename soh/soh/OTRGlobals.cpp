@@ -1572,7 +1572,7 @@ extern "C" RandomizerCheck Randomizer_GetCheckFromActor(s16 sceneNum, s16 actorI
     return OTRGlobals::Instance->gRandomizer->GetCheckFromActor(sceneNum, actorId, actorParams);
 }
 
-extern "C" ScrubIdentity Randomizer_IdentifyScrub(s16 sceneNum, s16 actorParams, s16 respawnData) {
+extern "C" ScrubIdentity Randomizer_IdentifyScrub(s32 sceneNum, s32 actorParams, s32 respawnData) {
     return OTRGlobals::Instance->gRandomizer->IdentifyScrub(sceneNum, actorParams, respawnData);
 }
 

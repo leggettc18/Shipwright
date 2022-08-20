@@ -46,7 +46,7 @@ class Randomizer {
     std::string GetAdultAltarText() const;
     std::string GetGanonText() const;
     std::string GetGanonHintText() const;
-    ScrubIdentity IdentifyScrub(s16 sceneNum, s16 actorParams, s16 respawnData);
+    ScrubIdentity IdentifyScrub(s32 sceneNum, s32 actorParams, s32 respawnData);
     s16 GetRandomizedItemIdFromKnownCheck(RandomizerCheck randomizerCheck, GetItemID ogId);
     s16 GetRandomizedItemId(GetItemID ogId, s16 actorId, s16 actorParams, s16 sceneNum);
     static void CreateCustomMessages();

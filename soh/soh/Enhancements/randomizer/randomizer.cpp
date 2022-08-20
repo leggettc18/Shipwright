@@ -2319,7 +2319,7 @@ std::string Randomizer::GetGanonHintText() const {
     return ganonHintText;
 }
 
-ScrubIdentity Randomizer::IdentifyScrub(s16 sceneNum, s16 actorParams, s16 respawnData) {
+ScrubIdentity Randomizer::IdentifyScrub(s32 sceneNum, s32 actorParams, s32 respawnData) {
     struct ScrubIdentity scrubIdentity;
 
     scrubIdentity.scrubId = -1;

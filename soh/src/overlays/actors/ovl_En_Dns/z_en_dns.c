@@ -168,7 +168,8 @@ void EnDns_Init(Actor* thisx, GlobalContext* globalCtx) {
     this->actor.textId = D_809F040C[this->actor.params];
     this->dnsItemEntry = sItemEntries[this->actor.params];
     if (gSaveContext.n64ddFlag) {
-        this->scrubIdentity = Randomizer_IdentifyScrub(globalCtx->sceneNum, this->actor.params, gSaveContext.respawn[RESPAWN_MODE_RETURN].data & ((1 << 8) - 1));
+        s16 respawnData = gSaveContext.respawn[RESPAWN_MODE_RETURN].data & ((1 << 8) - 1);
+        this->scrubIdentity = Randomizer_IdentifyScrub(globalCtx->sceneNum, this->actor.params, respawnData);
 
         if (Randomizer_GetSettingValue(RSK_SHUFFLE_SCRUBS) == 1 || Randomizer_GetSettingValue(RSK_SHUFFLE_SCRUBS) == 3 && this->scrubIdentity.itemPrice != -1) {
             this->dnsItemEntry->itemPrice = this->scrubIdentity.itemPrice;

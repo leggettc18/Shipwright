@@ -18,12 +18,6 @@ typedef struct {
     /* 0x0C */ EnDnsSetRupeesAndFlags setRupeesAndFlags;
 } DnsItemEntry; // size = 0x10
 
-typedef struct ScrubIdentity {
-    int scrubId;
-    RandomizerCheck randomizerCheck;
-    GetItemEntry getItemEntry;
-} ScrubIdentity;
-
 typedef struct EnDns {
     /* 0x0000 */ Actor actor;
     /* 0x014C */ SkelAnime skelAnime;

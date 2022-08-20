@@ -10,7 +10,6 @@
 
 #define FLAGS (ACTOR_FLAG_0 | ACTOR_FLAG_3)
 
-ScrubIdentity EnDns_RandomizerIdentifyScrub(EnDns* this, GlobalContext* globalCtx);
 void EnDns_Init(Actor* thisx, GlobalContext* globalCtx);
 void EnDns_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnDns_Update(Actor* thisx, GlobalContext* globalCtx);
@@ -136,238 +135,6 @@ static AnimationMinimalInfo sAnimationInfo[] = {
     { &gBusinessScrubNervousTransitionAnim, ANIMMODE_ONCE, 0.0f },
 };
 
-ScrubIdentity EnDns_RandomizerIdentifyScrub(EnDns* this, GlobalContext* globalCtx) {
-    struct ScrubIdentity scrubIdentity;
-    
-    scrubIdentity.scrubId = -1;
-    scrubIdentity.randomizerCheck = RC_UNKNOWN_CHECK;
-    scrubIdentity.getItemEntry = (GetItemEntry)GET_ITEM_NONE;
-
-    // TODO: Handle MQ scrubs
-    switch (globalCtx->sceneNum) {
-        case SCENE_DDAN: // Dodongo's Cavern
-            switch (this->actor.params) {
-                case 0x00:
-                    scrubIdentity.scrubId = 0x00;
-                    scrubIdentity.randomizerCheck = RC_DODONGOS_CAVERN_DEKU_SCRUB_NEAR_BOMB_BAG_LEFT;
-                    break;
-                case 0x01:
-                    scrubIdentity.scrubId = 0x01;
-                    scrubIdentity.randomizerCheck = RC_DODONGOS_CAVERN_DEKU_SCRUB_SIDE_ROOM_NEAR_DODONGOS;
-                    break;
-                case 0x03:
-                case 0x06:
-                    scrubIdentity.scrubId = 0x02;
-                    scrubIdentity.randomizerCheck = RC_DODONGOS_CAVERN_DEKU_SCRUB_NEAR_BOMB_BAG_RIGHT;
-                    break;
-                case 0x04:
-                    scrubIdentity.scrubId = 0x03;
-                    scrubIdentity.randomizerCheck = RC_DODONGOS_CAVERN_DEKU_SCRUB_LOBBY;
-                    break;
-            }
-            break;
-        case SCENE_BDAN: // Jabu Jabu's Belly
-            switch (this->actor.params) {
-                case 0x00:
-                    scrubIdentity.scrubId = 0x04;
-                    scrubIdentity.randomizerCheck = RC_JABU_JABUS_BELLY_DEKU_SCRUB;
-                    break;
-            }
-            break;
-        case SCENE_GANONTIKA: // Ganon's Castle
-            switch (this->actor.params) {
-                case 0x05:
-                    scrubIdentity.scrubId = 0x05;
-                    scrubIdentity.randomizerCheck = RC_GANONS_CASTLE_DEKU_SCRUB_CENTER_LEFT;
-                    break;
-                case 0x03:
-                case 0x06:
-                    scrubIdentity.scrubId = 0x06;
-                    scrubIdentity.randomizerCheck = RC_GANONS_CASTLE_DEKU_SCRUB_CENTER_RIGHT;
-                    break;
-                case 0x07:
-                    scrubIdentity.scrubId = 0x07;
-                    scrubIdentity.randomizerCheck = RC_GANONS_CASTLE_DEKU_SCRUB_RIGHT;
-                    break;
-                case 0x08:
-                    scrubIdentity.scrubId = 0x08;
-                    scrubIdentity.randomizerCheck = RC_GANONS_CASTLE_DEKU_SCRUB_LEFT;
-                    break;
-            }
-            break;
-        case SCENE_KAKUSIANA: // Grotto
-            // Ugly, but the best way we can identify which grotto we are in, same method 3DRando uses, but we'll need to account for entrance rando
-            switch (gSaveContext.respawn[RESPAWN_MODE_RETURN].data & ((1 << 8) - 1)) { 
-                case 0xE6: // Hyrule Field Scrub Grotto
-                    switch (this->actor.params) {
-                        case 0x02:
-                            scrubIdentity.scrubId = 0x09;
-                            scrubIdentity.randomizerCheck = RC_HF_DEKU_SCRUB_GROTTO;
-                            break;
-                    }
-                    break;
-                case 0xEB: // ZR Scrub Grotto
-                    switch (this->actor.params) {
-                        case 0x07:
-                            scrubIdentity.scrubId = 0x0A;
-                            scrubIdentity.randomizerCheck = RC_ZR_DEKU_SCRUB_GROTTO_REAR;
-                            break;
-                        case 0x08:
-                            scrubIdentity.scrubId = 0x0B;
-                            scrubIdentity.randomizerCheck = RC_ZR_DEKU_SCRUB_GROTTO_FRONT;
-                            break;
-                    }
-                    break;
-                case 0xEE: // Sacred Forest Meadow Scrub Grotto
-                    switch (this->actor.params) {
-                        case 0x07:
-                            scrubIdentity.scrubId = 0x0C;
-                            scrubIdentity.randomizerCheck = RC_SFM_DEKU_SCRUB_GROTTO_REAR;
-                            break;
-                        case 0x08:
-                            scrubIdentity.scrubId = 0x0D;
-                            scrubIdentity.randomizerCheck = RC_SFM_DEKU_SCRUB_GROTTO_FRONT;
-                            break;
-                    }
-                    break;
-                case 0xEF: // Lake Hylia Scrub Grotto
-                    switch (this->actor.params) {
-                        case 0x00:
-                            scrubIdentity.scrubId = 0x0E;
-                            scrubIdentity.randomizerCheck = RC_LH_DEKU_SCRUB_GROTTO_LEFT;
-                            break;
-                        case 0x05:
-                            scrubIdentity.scrubId = 0x0F;
-                            scrubIdentity.randomizerCheck = RC_LH_DEKU_SCRUB_GROTTO_RIGHT;
-                            break;
-                        case 0x03:
-                        case 0x06:
-                            scrubIdentity.scrubId = 0x10;
-                            scrubIdentity.randomizerCheck = RC_LH_DEKU_SCRUB_GROTTO_CENTER;
-                            break;
-                    }
-                    break;
-                case 0xF0: // Gerudo Valley Scrub Grotto
-                    switch (this->actor.params) {
-                        case 0x07:
-                            scrubIdentity.scrubId = 0x11;
-                            scrubIdentity.randomizerCheck = RC_GV_DEKU_SCRUB_GROTTO_REAR;
-                            break;
-                        case 0x08:
-                            scrubIdentity.scrubId = 0x12;
-                            scrubIdentity.randomizerCheck = RC_GV_DEKU_SCRUB_GROTTO_FRONT;
-                            break;
-                    }
-                    break;
-                case 0xF5: // Lost Woods Scrub Grotto
-                    switch (this->actor.params) {
-                        case 0x03:
-                        case 0x06:
-                            scrubIdentity.scrubId = 0x13;
-                            scrubIdentity.randomizerCheck = RC_LW_DEKU_SCRUB_GROTTO_REAR;
-                            break;
-                        case 0x0A:
-                            scrubIdentity.scrubId = 0x14;
-                            scrubIdentity.randomizerCheck = RC_LW_DEKU_SCRUB_GROTTO_FRONT;
-                            break;
-                    }
-                    break;
-                case 0xF9: // Death Mountain Crater Scrub Grotto
-                    switch (this->actor.params) {
-                        case 0x00:
-                            scrubIdentity.scrubId = 0x15;
-                            scrubIdentity.randomizerCheck = RC_DMC_DEKU_SCRUB_GROTTO_LEFT;
-                            break;
-                        case 0x05:
-                            scrubIdentity.scrubId = 0x16;
-                            scrubIdentity.randomizerCheck = RC_DMC_DEKU_SCRUB_GROTTO_RIGHT;
-                            break;
-                        case 0x03:
-                        case 0x06:
-                            scrubIdentity.scrubId = 0x17;
-                            scrubIdentity.randomizerCheck = RC_DMC_DEKU_SCRUB_GROTTO_CENTER;
-                            break;
-                    }
-                    break;
-                case 0xFB: // Gerudo City Scrub Grotto
-                    switch (this->actor.params) {
-                        case 0x00:
-                            scrubIdentity.scrubId = 0x18;
-                            scrubIdentity.randomizerCheck = RC_GC_DEKU_SCRUB_GROTTO_LEFT;
-                            break;
-                        case 0x05:
-                            scrubIdentity.scrubId = 0x19;
-                            scrubIdentity.randomizerCheck = RC_GC_DEKU_SCRUB_GROTTO_RIGHT;
-                            break;
-                        case 0x03:
-                        case 0x06:
-                            scrubIdentity.scrubId = 0x1A;
-                            scrubIdentity.randomizerCheck = RC_GC_DEKU_SCRUB_GROTTO_CENTER;
-                            break;
-                    }
-                    break;
-                case 0xFC: // Lon Lon Ranch Scrub Grotto
-                    switch (this->actor.params) {
-                        case 0x00:
-                            scrubIdentity.scrubId = 0x1B;
-                            scrubIdentity.randomizerCheck = RC_LLR_DEKU_SCRUB_GROTTO_LEFT;
-                            break;
-                        case 0x05:
-                            scrubIdentity.scrubId = 0x1C;
-                            scrubIdentity.randomizerCheck = RC_LLR_DEKU_SCRUB_GROTTO_RIGHT;
-                            break;
-                        case 0x03:
-                        case 0x06:
-                            scrubIdentity.scrubId = 0x1D;
-                            scrubIdentity.randomizerCheck = RC_LLR_DEKU_SCRUB_GROTTO_CENTER;
-                            break;
-                    }
-                    break;
-                case 0xFD: // Desert Colossus Scrub Grotto
-                    switch (this->actor.params) {
-                        case 0x07:
-                            scrubIdentity.scrubId = 0x1E;
-                            scrubIdentity.randomizerCheck = RC_COLOSSUS_DEKU_SCRUB_GROTTO_REAR;
-                            break;
-                        case 0x08:
-                            scrubIdentity.scrubId = 0x1F;
-                            scrubIdentity.randomizerCheck = RC_COLOSSUS_DEKU_SCRUB_GROTTO_FRONT;
-                            break;
-                    }
-                    break;
-            }
-            break;
-        case SCENE_SPOT10: // Lost woods
-            switch (this->actor.params) {
-                case 0x00:
-                    scrubIdentity.scrubId = 0x20;
-                    scrubIdentity.randomizerCheck = RC_LW_DEKU_SCRUB_NEAR_DEKU_THEATER_RIGHT;
-                    break;
-                case 0x01:
-                    scrubIdentity.scrubId = 0x21;
-                    scrubIdentity.randomizerCheck = RC_LW_DEKU_SCRUB_NEAR_DEKU_THEATER_LEFT;
-                    break;
-                case 0x09:
-                    scrubIdentity.scrubId = 0x22;
-                    scrubIdentity.randomizerCheck = RC_LW_DEKU_SCRUB_NEAR_BRIDGE;
-                    break;
-            }
-            break;
-        case SCENE_SPOT17: // Death Mountain Crater
-            switch (this->actor.params) {
-                case 0x05:
-                    scrubIdentity.scrubId = 0x23;
-                    scrubIdentity.randomizerCheck = RC_DMC_DEKU_SCRUB;
-                    break;
-            }
-            break;
-    }
-
-    scrubIdentity.getItemEntry = Randomizer_GetItemFromKnownCheck(scrubIdentity.randomizerCheck, GI_STICKS_1);
-
-    return scrubIdentity;
-}
-
 void EnDns_Init(Actor* thisx, GlobalContext* globalCtx) {
     EnDns* this = (EnDns*)thisx;
 
@@ -403,15 +170,15 @@ void EnDns_Init(Actor* thisx, GlobalContext* globalCtx) {
         this->dnsItemEntry = sItemEntries[this->actor.params];
     } else {
         this->actor.textId = 0x10A2;
-        this->scrubIdentity = EnDns_RandomizerIdentifyScrub(this, globalCtx);
+        this->scrubIdentity = Randomizer_IdentifyScrub(globalCtx->sceneNum, this->actor.params, gSaveContext.respawn[RESPAWN_MODE_RETURN].data & ((1 << 8) - 1));
         this->dnsItemEntry = sItemEntries[this->actor.params];
-        this->dnsItemEntry->getItemId = this->scrubIdentity.getItemEntry.getItemId;
+        this->dnsItemEntry->getItemId = this->scrubIdentity.getItemId;
         this->dnsItemEntry->purchaseableCheck = EnDns_RandomizerPurchaseableCheck;
         this->dnsItemEntry->setRupeesAndFlags = EnDns_RandomizerPurchase;
         this->dnsItemEntry->itemAmount = 1;
-        this->dnsItemEntry->itemPrice = 10;
+        this->dnsItemEntry->itemPrice = this->scrubIdentity.itemPrice;
         // TODO: I would rather do this, but this doesn't seem to work and I don't understand why.
-        // this->dnsItemEntry = (DnsItemEntry*){ 10, 1, this->scrubIdentity.getItemEntry.getItemId, EnDns_RandomizerPurchaseableCheck, EnDns_RandomizerPurchase };
+        // this->dnsItemEntry = (DnsItemEntry*){ this->scrubIdentity.itemPrice, 1, this->scrubIdentity.getItemId, EnDns_RandomizerPurchaseableCheck, EnDns_RandomizerPurchase };
     }
     this->actionFunc = EnDns_SetupWait;
 }
@@ -645,7 +412,8 @@ void func_809EFDD0(EnDns* this, GlobalContext* globalCtx) {
             func_8002F434(&this->actor, globalCtx, this->dnsItemEntry->getItemId, 130.0f, 100.0f);
         }
     } else {
-        GiveItemEntryFromActor(&this->actor, globalCtx, this->scrubIdentity.getItemEntry, 130.0f, 100.0f);
+        GetItemEntry itemEntry = Randomizer_GetItemFromKnownCheck(this->scrubIdentity.randomizerCheck, this->scrubIdentity.getItemId);
+        GiveItemEntryFromActor(&this->actor, globalCtx, itemEntry, 130.0f, 100.0f);
     }
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "z64item.h"
 
 // This should probably go in a less rando-specific location
 // but the best location will probably be in the modding engine
@@ -1016,3 +1017,10 @@ typedef enum {
     RSK_SKULLS_SUNS_SONG,
     RSK_SHUFFLE_ADULT_TRADE
 } RandomizerSettingKey;
+
+typedef struct ScrubIdentity {
+    int scrubId;
+    RandomizerCheck randomizerCheck;
+    GetItemID getItemId;
+    uint16_t itemPrice;
+} ScrubIdentity;

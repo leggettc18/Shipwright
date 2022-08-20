@@ -18,15 +18,11 @@
 #include <soh/Enhancements/custom-message/CustomMessageTypes.h>
 #include <soh/Enhancements/item-tables/ItemTableManager.h>
 #include <stdexcept>
-#include "randomizer_check_objects.h"
-#include <sstream>
 
 using json = nlohmann::json;
 using namespace std::literals::string_literals;
 
 std::unordered_map<uint8_t, Sprite> gSeedTextures;
-std::unordered_map<std::string, RandomizerCheck> SpoilerfileCheckNameToEnum;
-std::set<RandomizerCheck> excludedLocations;
 
 u8 generated;
 
@@ -64,14 +60,6 @@ Randomizer::Randomizer() {
 
     Sprite ootOcarinaSprite = { dgOcarinaofTimeIconTex, 32, 32, G_IM_FMT_RGBA, G_IM_SIZ_32b, 9 };
     gSeedTextures[9] = ootOcarinaSprite;
-
-    for (auto areaIt : RandomizerCheckObjects::GetAllRCObjects()) {
-        for (auto locationIt : areaIt.second) {
-            SpoilerfileCheckNameToEnum[locationIt.rcSpoilerName] = locationIt.rc;
-        }
-        SpoilerfileCheckNameToEnum["Invalid Location"] = RC_UNKNOWN_CHECK;
-        SpoilerfileCheckNameToEnum["Link's Pocket"] = RC_LINKS_POCKET;
-    }
 }
 
 Sprite* Randomizer::GetSeedTexture(uint8_t index) {
@@ -82,6 +70,55 @@ Randomizer::~Randomizer() {
     this->randoSettings.clear();
     this->itemLocations.clear();
 }
+
+std::unordered_map<RandomizerCheck, u16> scrubPrices = {
+    { RC_LW_DEKU_SCRUB_NEAR_DEKU_THEATER_RIGHT, 40 },
+    { RC_LW_DEKU_SCRUB_NEAR_DEKU_THEATER_LEFT, 40 },
+    { RC_LW_DEKU_SCRUB_NEAR_BRIDGE, 40 },
+    { RC_LW_DEKU_SCRUB_GROTTO_REAR, 40 },
+    { RC_LW_DEKU_SCRUB_GROTTO_FRONT, 40 },
+    { RC_SFM_DEKU_SCRUB_GROTTO_REAR, 40 },
+    { RC_SFM_DEKU_SCRUB_GROTTO_FRONT, 40 },
+    { RC_HF_DEKU_SCRUB_GROTTO, 40 },
+    { RC_LH_DEKU_SCRUB_GROTTO_LEFT, 40 },
+    { RC_LH_DEKU_SCRUB_GROTTO_RIGHT, 40 },
+    { RC_LH_DEKU_SCRUB_GROTTO_CENTER, 40 },
+    { RC_GV_DEKU_SCRUB_GROTTO_REAR, 40 },
+    { RC_GV_DEKU_SCRUB_GROTTO_FRONT, 40 },
+    { RC_COLOSSUS_DEKU_SCRUB_GROTTO_REAR, 40 },
+    { RC_COLOSSUS_DEKU_SCRUB_GROTTO_FRONT, 40 },
+    { RC_GC_DEKU_SCRUB_GROTTO_LEFT, 40 },
+    { RC_GC_DEKU_SCRUB_GROTTO_RIGHT, 40 },
+    { RC_GC_DEKU_SCRUB_GROTTO_CENTER, 40 },
+    { RC_DMC_DEKU_SCRUB, 40 },
+    { RC_DMC_DEKU_SCRUB_GROTTO_LEFT, 40 },
+    { RC_DMC_DEKU_SCRUB_GROTTO_RIGHT, 40 },
+    { RC_DMC_DEKU_SCRUB_GROTTO_CENTER, 40 },
+    { RC_ZR_DEKU_SCRUB_GROTTO_REAR, 40 },
+    { RC_ZR_DEKU_SCRUB_GROTTO_FRONT, 40 },
+    { RC_LLR_DEKU_SCRUB_GROTTO_LEFT, 40 },
+    { RC_LLR_DEKU_SCRUB_GROTTO_RIGHT, 40 },
+    { RC_LLR_DEKU_SCRUB_GROTTO_CENTER, 40 },
+    { RC_DEKU_TREE_MQ_DEKU_SCRUB, 40 },
+    { RC_DODONGOS_CAVERN_DEKU_SCRUB_NEAR_BOMB_BAG_LEFT, 40 },
+    { RC_DODONGOS_CAVERN_DEKU_SCRUB_SIDE_ROOM_NEAR_DODONGOS, 40 },
+    { RC_DODONGOS_CAVERN_DEKU_SCRUB_NEAR_BOMB_BAG_RIGHT, 40 },
+    { RC_DODONGOS_CAVERN_DEKU_SCRUB_LOBBY, 40 },
+    { RC_DODONGOS_CAVERN_MQ_DEKU_SCRUB_LOBBY_REAR, 40 },
+    { RC_DODONGOS_CAVERN_MQ_DEKU_SCRUB_LOBBY_FRONT, 40 },
+    { RC_DODONGOS_CAVERN_MQ_DEKU_SCRUB_STAIRCASE, 40 },
+    { RC_DODONGOS_CAVERN_MQ_DEKU_SCRUB_SIDE_ROOM_NEAR_LOWER_LIZALFOS, 40 },
+    { RC_JABU_JABUS_BELLY_DEKU_SCRUB, 40 },
+    { RC_GANONS_CASTLE_DEKU_SCRUB_CENTER_LEFT, 40 },
+    { RC_GANONS_CASTLE_DEKU_SCRUB_CENTER_RIGHT, 40 },
+    { RC_GANONS_CASTLE_DEKU_SCRUB_RIGHT, 40 },
+    { RC_GANONS_CASTLE_DEKU_SCRUB_LEFT, 40 },
+    { RC_GANONS_CASTLE_MQ_DEKU_SCRUB_RIGHT, 40 },
+    { RC_GANONS_CASTLE_MQ_DEKU_SCRUB_CENTER_LEFT, 40 },
+    { RC_GANONS_CASTLE_MQ_DEKU_SCRUB_CENTER, 40 },
+    { RC_GANONS_CASTLE_MQ_DEKU_SCRUB_CENTER_RIGHT, 40 },
+    { RC_GANONS_CASTLE_MQ_DEKU_SCRUB_LEFT, 40 },
+};
 
 std::unordered_map<s16, s16> getItemIdToItemId = {
     { GI_BOW, ITEM_BOW },
@@ -763,6 +800,10 @@ void Randomizer::ParseRandomizerSettingsFile(const char* spoilerFileName) {
                             gSaveContext.randoSettings[index].value = 0;            
                         } else if(it.value() == "Affordable") {
                             gSaveContext.randoSettings[index].value = 1;
+                        } else if(it.value() == "Expensive") {
+                            gSaveContext.randoSettings[index].value = 2;
+                        } else if(it.value() == "Random Prices") {
+                            gSaveContext.randoSettings[index].value = 3;
                         }
                         break;
                     case RSK_SHUFFLE_GERUDO_MEMBERSHIP_CARD:
@@ -1095,9 +1136,13 @@ void Randomizer::ParseItemLocationsFile(const char* spoilerFileName, bool silent
                 for (auto itemit = itemJson.begin(); itemit != itemJson.end(); ++itemit) {
                     // todo handle prices
                     if (itemit.key() == "item") {
-
                         gSaveContext.itemLocations[index].check = SpoilerfileCheckNameToEnum[it.key()];
                         gSaveContext.itemLocations[index].get = SpoilerfileGetNameToEnum[itemit.value()];
+                    } else if (itemit.key() == "price") {
+                        if (scrubPrices.find(gSaveContext.itemLocations[index].check) != scrubPrices.end()) {
+                            scrubPrices[gSaveContext.itemLocations[index].check] = itemit.value();
+                        }
+                        // TODO: Handle shop prices
                     }
                 }
             } else {
@@ -1579,6 +1624,275 @@ std::string Randomizer::GetGanonText() const {
 
 std::string Randomizer::GetGanonHintText() const {
     return ganonHintText;
+}
+
+ScrubIdentity Randomizer::IdentifyScrub(s16 sceneNum, s16 actorParams, s16 respawnData) {
+    struct ScrubIdentity scrubIdentity;
+
+    scrubIdentity.scrubId = -1;
+    scrubIdentity.randomizerCheck = RC_UNKNOWN_CHECK;
+    scrubIdentity.getItemId = GI_NONE;
+    scrubIdentity.itemPrice = 40;
+
+    switch (actorParams) {
+        case 0x00:
+            scrubIdentity.getItemId = GI_NUTS_5_2;
+            break;
+        case 0x01:
+            scrubIdentity.getItemId = GI_STICKS_1;
+            break;
+        case 0x02:
+            scrubIdentity.getItemId = GI_HEART_PIECE;
+            break;
+        case 0x03:
+            scrubIdentity.getItemId = GI_SEEDS_30;
+            break;
+        case 0x04:
+            scrubIdentity.getItemId = GI_SHIELD_DEKU;
+            break;
+        case 0x05:
+            scrubIdentity.getItemId = GI_BOMBS_5;
+            break;
+        case 0x06:
+            scrubIdentity.getItemId = GI_ARROWS_LARGE;
+            break;
+        case 0x07:
+            scrubIdentity.getItemId = GI_POTION_RED;
+            break;
+        case 0x08:
+            scrubIdentity.getItemId = GI_POTION_GREEN;
+            break;
+        case 0x09:
+            scrubIdentity.getItemId = GI_STICK_UPGRADE_20;
+            break;
+        case 0x0A:
+            scrubIdentity.getItemId = GI_NUT_UPGRADE_30;
+            break;
+    }
+
+    // TODO: Handle MQ scrubs
+    switch (sceneNum) {
+        case SCENE_DDAN: // Dodongo's Cavern
+            switch (actorParams) {
+                case 0x00:
+                    scrubIdentity.scrubId = 0x00;
+                    scrubIdentity.randomizerCheck = RC_DODONGOS_CAVERN_DEKU_SCRUB_NEAR_BOMB_BAG_LEFT;
+                    break;
+                case 0x01:
+                    scrubIdentity.scrubId = 0x01;
+                    scrubIdentity.randomizerCheck = RC_DODONGOS_CAVERN_DEKU_SCRUB_SIDE_ROOM_NEAR_DODONGOS;
+                    break;
+                case 0x03:
+                case 0x06:
+                    scrubIdentity.scrubId = 0x02;
+                    scrubIdentity.randomizerCheck = RC_DODONGOS_CAVERN_DEKU_SCRUB_NEAR_BOMB_BAG_RIGHT;
+                    break;
+                case 0x04:
+                    scrubIdentity.scrubId = 0x03;
+                    scrubIdentity.randomizerCheck = RC_DODONGOS_CAVERN_DEKU_SCRUB_LOBBY;
+                    break;
+            }
+            break;
+        case SCENE_BDAN: // Jabu Jabu's Belly
+            switch (actorParams) {
+                case 0x00:
+                    scrubIdentity.scrubId = 0x04;
+                    scrubIdentity.randomizerCheck = RC_JABU_JABUS_BELLY_DEKU_SCRUB;
+                    break;
+            }
+            break;
+        case SCENE_GANONTIKA: // Ganon's Castle
+            switch (actorParams) {
+                case 0x05:
+                    scrubIdentity.scrubId = 0x05;
+                    scrubIdentity.randomizerCheck = RC_GANONS_CASTLE_DEKU_SCRUB_CENTER_LEFT;
+                    break;
+                case 0x03:
+                case 0x06:
+                    scrubIdentity.scrubId = 0x06;
+                    scrubIdentity.randomizerCheck = RC_GANONS_CASTLE_DEKU_SCRUB_CENTER_RIGHT;
+                    break;
+                case 0x07:
+                    scrubIdentity.scrubId = 0x07;
+                    scrubIdentity.randomizerCheck = RC_GANONS_CASTLE_DEKU_SCRUB_RIGHT;
+                    break;
+                case 0x08:
+                    scrubIdentity.scrubId = 0x08;
+                    scrubIdentity.randomizerCheck = RC_GANONS_CASTLE_DEKU_SCRUB_LEFT;
+                    break;
+            }
+            break;
+        case SCENE_KAKUSIANA: // Grotto
+            // Ugly, but the best way we can identify which grotto we are in, same method 3DRando uses, but we'll need to account for entrance rando
+            switch (gSaveContext.respawn[RESPAWN_MODE_RETURN].data & ((1 << 8) - 1)) { 
+                case 0xE6: // Hyrule Field Scrub Grotto
+                    switch (actorParams) {
+                        case 0x02:
+                            scrubIdentity.scrubId = 0x09;
+                            scrubIdentity.randomizerCheck = RC_HF_DEKU_SCRUB_GROTTO;
+                            break;
+                    }
+                    break;
+                case 0xEB: // ZR Scrub Grotto
+                    switch (actorParams) {
+                        case 0x07:
+                            scrubIdentity.scrubId = 0x0A;
+                            scrubIdentity.randomizerCheck = RC_ZR_DEKU_SCRUB_GROTTO_REAR;
+                            break;
+                        case 0x08:
+                            scrubIdentity.scrubId = 0x0B;
+                            scrubIdentity.randomizerCheck = RC_ZR_DEKU_SCRUB_GROTTO_FRONT;
+                            break;
+                    }
+                    break;
+                case 0xEE: // Sacred Forest Meadow Scrub Grotto
+                    switch (actorParams) {
+                        case 0x07:
+                            scrubIdentity.scrubId = 0x0C;
+                            scrubIdentity.randomizerCheck = RC_SFM_DEKU_SCRUB_GROTTO_REAR;
+                            break;
+                        case 0x08:
+                            scrubIdentity.scrubId = 0x0D;
+                            scrubIdentity.randomizerCheck = RC_SFM_DEKU_SCRUB_GROTTO_FRONT;
+                            break;
+                    }
+                    break;
+                case 0xEF: // Lake Hylia Scrub Grotto
+                    switch (actorParams) {
+                        case 0x00:
+                            scrubIdentity.scrubId = 0x0E;
+                            scrubIdentity.randomizerCheck = RC_LH_DEKU_SCRUB_GROTTO_LEFT;
+                            break;
+                        case 0x05:
+                            scrubIdentity.scrubId = 0x0F;
+                            scrubIdentity.randomizerCheck = RC_LH_DEKU_SCRUB_GROTTO_RIGHT;
+                            break;
+                        case 0x03:
+                        case 0x06:
+                            scrubIdentity.scrubId = 0x10;
+                            scrubIdentity.randomizerCheck = RC_LH_DEKU_SCRUB_GROTTO_CENTER;
+                            break;
+                    }
+                    break;
+                case 0xF0: // Gerudo Valley Scrub Grotto
+                    switch (actorParams) {
+                        case 0x07:
+                            scrubIdentity.scrubId = 0x11;
+                            scrubIdentity.randomizerCheck = RC_GV_DEKU_SCRUB_GROTTO_REAR;
+                            break;
+                        case 0x08:
+                            scrubIdentity.scrubId = 0x12;
+                            scrubIdentity.randomizerCheck = RC_GV_DEKU_SCRUB_GROTTO_FRONT;
+                            break;
+                    }
+                    break;
+                case 0xF5: // Lost Woods Scrub Grotto
+                    switch (actorParams) {
+                        case 0x03:
+                        case 0x06:
+                            scrubIdentity.scrubId = 0x13;
+                            scrubIdentity.randomizerCheck = RC_LW_DEKU_SCRUB_GROTTO_REAR;
+                            break;
+                        case 0x0A:
+                            scrubIdentity.scrubId = 0x14;
+                            scrubIdentity.randomizerCheck = RC_LW_DEKU_SCRUB_GROTTO_FRONT;
+                            break;
+                    }
+                    break;
+                case 0xF9: // Death Mountain Crater Scrub Grotto
+                    switch (actorParams) {
+                        case 0x00:
+                            scrubIdentity.scrubId = 0x15;
+                            scrubIdentity.randomizerCheck = RC_DMC_DEKU_SCRUB_GROTTO_LEFT;
+                            break;
+                        case 0x05:
+                            scrubIdentity.scrubId = 0x16;
+                            scrubIdentity.randomizerCheck = RC_DMC_DEKU_SCRUB_GROTTO_RIGHT;
+                            break;
+                        case 0x03:
+                        case 0x06:
+                            scrubIdentity.scrubId = 0x17;
+                            scrubIdentity.randomizerCheck = RC_DMC_DEKU_SCRUB_GROTTO_CENTER;
+                            break;
+                    }
+                    break;
+                case 0xFB: // Gerudo City Scrub Grotto
+                    switch (actorParams) {
+                        case 0x00:
+                            scrubIdentity.scrubId = 0x18;
+                            scrubIdentity.randomizerCheck = RC_GC_DEKU_SCRUB_GROTTO_LEFT;
+                            break;
+                        case 0x05:
+                            scrubIdentity.scrubId = 0x19;
+                            scrubIdentity.randomizerCheck = RC_GC_DEKU_SCRUB_GROTTO_RIGHT;
+                            break;
+                        case 0x03:
+                        case 0x06:
+                            scrubIdentity.scrubId = 0x1A;
+                            scrubIdentity.randomizerCheck = RC_GC_DEKU_SCRUB_GROTTO_CENTER;
+                            break;
+                    }
+                    break;
+                case 0xFC: // Lon Lon Ranch Scrub Grotto
+                    switch (actorParams) {
+                        case 0x00:
+                            scrubIdentity.scrubId = 0x1B;
+                            scrubIdentity.randomizerCheck = RC_LLR_DEKU_SCRUB_GROTTO_LEFT;
+                            break;
+                        case 0x05:
+                            scrubIdentity.scrubId = 0x1C;
+                            scrubIdentity.randomizerCheck = RC_LLR_DEKU_SCRUB_GROTTO_RIGHT;
+                            break;
+                        case 0x03:
+                        case 0x06:
+                            scrubIdentity.scrubId = 0x1D;
+                            scrubIdentity.randomizerCheck = RC_LLR_DEKU_SCRUB_GROTTO_CENTER;
+                            break;
+                    }
+                    break;
+                case 0xFD: // Desert Colossus Scrub Grotto
+                    switch (actorParams) {
+                        case 0x07:
+                            scrubIdentity.scrubId = 0x1E;
+                            scrubIdentity.randomizerCheck = RC_COLOSSUS_DEKU_SCRUB_GROTTO_REAR;
+                            break;
+                        case 0x08:
+                            scrubIdentity.scrubId = 0x1F;
+                            scrubIdentity.randomizerCheck = RC_COLOSSUS_DEKU_SCRUB_GROTTO_FRONT;
+                            break;
+                    }
+                    break;
+            }
+            break;
+        case SCENE_SPOT10: // Lost woods
+            switch (actorParams) {
+                case 0x00:
+                    scrubIdentity.scrubId = 0x20;
+                    scrubIdentity.randomizerCheck = RC_LW_DEKU_SCRUB_NEAR_DEKU_THEATER_RIGHT;
+                    break;
+                case 0x01:
+                    scrubIdentity.scrubId = 0x21;
+                    scrubIdentity.randomizerCheck = RC_LW_DEKU_SCRUB_NEAR_DEKU_THEATER_LEFT;
+                    break;
+                case 0x09:
+                    scrubIdentity.scrubId = 0x22;
+                    scrubIdentity.randomizerCheck = RC_LW_DEKU_SCRUB_NEAR_BRIDGE;
+                    break;
+            }
+            break;
+        case SCENE_SPOT17: // Death Mountain Crater
+            switch (actorParams) {
+                case 0x05:
+                    scrubIdentity.scrubId = 0x23;
+                    scrubIdentity.randomizerCheck = RC_DMC_DEKU_SCRUB;
+                    break;
+            }
+            break;
+    }
+
+    scrubIdentity.itemPrice = scrubPrices[scrubIdentity.randomizerCheck];
+
+    return scrubIdentity;
 }
 
 u8 Randomizer::GetRandoSettingValue(RandomizerSettingKey randoSettingKey) {
@@ -2704,8 +3018,7 @@ void DrawRandoEditor(bool& open) {
     const char* randoShuffleTokens[4] = { "Off", "Dungeons", "Overworld", "All Tokens" };
     const char* randoShopsanity[7] = { "Off", "0", "1", "2", "3", "4", "Random" };
     const char* randoTokensanity[4] = { "Off", "Dungeons", "Overworld", "All Tokens" };
-    // const char* randoShuffleScrubs[4] = { "Off", "Affordable", "Expensive", "Random Prices" };
-    const char* randoShuffleScrubs[2] = { "Off", "Affordable" };
+    const char* randoShuffleScrubs[4] = { "Off", "Affordable", "Expensive", "Random Prices" };
     const char* randoShuffleCows[2] = { "Off", "On" };
     const char* randoShuffleKokiriSword[2] = { "Off", "On" };
     const char* randoShuffleOcarinas[2] = { "Off", "On" };
@@ -3136,7 +3449,7 @@ void DrawRandoEditor(bool& open) {
                             "\n"
                             "Affordable - Scrubs will be shuffled and their item will cost 10 rupees.\n"
                         );
-                        SohImGui::EnhancementCombobox("gRandomizeShuffleScrubs", randoShuffleScrubs, 2, 0);
+                        SohImGui::EnhancementCombobox("gRandomizeShuffleScrubs", randoShuffleScrubs, 4, 0);
                         PaddedSeparator();
 
                         // Shuffle Cows
@@ -3767,8 +4080,7 @@ void CreateGetItemMessages(std::vector<GetItemMessage> messageEntries) {
 void CreateScrubMessages() {
     CustomMessageManager* customMessageManager = CustomMessageManager::Instance;
     customMessageManager->AddCustomMessageTable(Randomizer::scrubMessageTableID);
-    const std::vector<u8> prices = { 10, 40 };
-    for (u8 price : prices) {
+    for (u32 price = 0; price <= 95; price += 5) {
         customMessageManager->CreateMessage(Randomizer::scrubMessageTableID, price,
             { TEXTBOX_TYPE_BLACK, TEXTBOX_POS_BOTTOM,
               "\x12\x38\x82\All right! You win! In return for&sparing me, I will sell you a&%gmysterious item%w!&%r" +

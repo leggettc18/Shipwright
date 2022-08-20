@@ -96,6 +96,7 @@ Sprite* GetSeedTexture(uint8_t index);
 void Randomizer_LoadSettings(const char* spoilerFileName);
 u8 Randomizer_GetSettingValue(RandomizerSettingKey randoSettingKey);
 RandomizerCheck Randomizer_GetCheckFromActor(s16 actorId, s16 actorParams, s16 sceneNum);
+ScrubIdentity Randomizer_IdentifyScrub(s16 sceneNum, s16 actorParams, s16 respawnData);
 void Randomizer_LoadHintLocations(const char* spoilerFileName);
 void Randomizer_LoadItemLocations(const char* spoilerFileName, bool silent);
 s32 Randomizer_GetItemIDFromGetItemID(s32 getItemId); // TODO: Remove me

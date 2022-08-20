@@ -1572,18 +1572,12 @@ extern "C" RandomizerCheck Randomizer_GetCheckFromActor(s16 sceneNum, s16 actorI
     return OTRGlobals::Instance->gRandomizer->GetCheckFromActor(sceneNum, actorId, actorParams);
 }
 
-extern "C" CustomMessageEntry Randomizer_GetScrubMessage(u16 scrubTextId) {
-    int price = 0;
-    switch (scrubTextId) {
-        case TEXT_SCRUB_POH:
-            price = 10;
-            break;
-        case TEXT_SCRUB_STICK_UPGRADE:
-        case TEXT_SCRUB_NUT_UPGRADE:
-            price = 40;
-            break;
-    }
-    return CustomMessageManager::Instance->RetrieveMessage(Randomizer::scrubMessageTableID, price);
+extern "C" ScrubIdentity Randomizer_IdentifyScrub(s16 sceneNum, s16 actorParams, s16 respawnData) {
+    return OTRGlobals::Instance->gRandomizer->IdentifyScrub(sceneNum, actorParams, respawnData);
+}
+
+extern "C" CustomMessageEntry Randomizer_GetScrubMessage(s16 itemPrice) {
+    return CustomMessageManager::Instance->RetrieveMessage(Randomizer::scrubMessageTableID, itemPrice);
 }
 
 extern "C" CustomMessageEntry Randomizer_GetAltarMessage() {
@@ -1708,7 +1702,8 @@ extern "C" int CustomMessage_RetrieveIfExists(GlobalContext* globalCtx) {
                 messageEntry = Randomizer_GetGanonHintText();
             }
         } else if (textId == TEXT_SCRUB_POH || textId == TEXT_SCRUB_STICK_UPGRADE || textId == TEXT_SCRUB_NUT_UPGRADE) {
-            messageEntry = Randomizer_GetScrubMessage(textId);
+            ScrubIdentity scrubIdentity = Randomizer_IdentifyScrub(globalCtx->sceneNum, msgCtx->talkActor->params, gSaveContext.respawn[RESPAWN_MODE_RETURN].data & ((1 << 8) - 1));
+            messageEntry = Randomizer_GetScrubMessage(scrubIdentity.itemPrice);
         }
     }
     if (textId == TEXT_GS_NO_FREEZE || textId == TEXT_GS_FREEZE) {

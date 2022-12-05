@@ -1111,6 +1111,12 @@ s32 AudioLoad_AssertValidAddr(uintptr_t ramAddr, uintptr_t startAddr, size_t siz
 
 #define BASE_ROM_OFFSET(x) (uintptr_t)((uintptr_t)(x) + (uintptr_t)(romAddr))
 
+int strcmp_sort( const void *str1, const void *str2 ) {
+    char *const *pp1 = str1;
+    char *const *pp2 = str2;
+    return strcmp(*pp1, *pp2);
+}
+
 void AudioLoad_InitSwapFontSampleHeaders(SoundFontSample* sample, uintptr_t romAddr) {
 }
 
@@ -1315,6 +1321,7 @@ void AudioLoad_Init(void* heap, size_t heapSize) {
     int customSeqListSize = 0;
     int startingSeqNum = 110; // 109 is the highest vanilla sequence
     char** customSeqList = ResourceMgr_ListFiles("custom/music/*", &customSeqListSize);
+    qsort(customSeqList, customSeqListSize, sizeof(char*), strcmp_sort);
 
     for (size_t i = startingSeqNum; i < startingSeqNum + customSeqListSize; i++) {
         int j = i - startingSeqNum;

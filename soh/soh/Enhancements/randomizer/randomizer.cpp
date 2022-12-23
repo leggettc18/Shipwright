@@ -4392,6 +4392,7 @@ std::unordered_map<RandomizerGet, CustomMessageMinimal> silverRupeeRoomNames = {
     { RG_BOTTOM_OF_THE_WELL_SILVER_RUPEE, { "Bottom of the Well", "Bottom of the Well", "Bottom of the Well" } },
     { RG_GERUDO_TRAINING_GROUNDS_BOULDER_SILVER_RUPEE, { "Boulder Maze in the Gerudo Training Grounds", "Boulder Maze in the Gerudo Training Grounds", "Boulder Maze in the Gerudo Training Grounds" } },
     { RG_GERUDO_TRAINING_GROUNDS_LAVA_SILVER_RUPEE, { "Lava room in the Gerudo Training Grounds", "Lava room in the Gerudo Training Grounds", "Lava room in the Gerudo Training Grounds" } },
+    { RG_GERUDO_TRAINING_GROUNDS_TOILET_SILVER_RUPEE, { "Whirlpool room in the Gerudo Training Grounds", "Whirlpool room in the Gerudo Training Grounds", "Whirlpool room in the Gerudo Training Grounds" } },
     { RG_SPIRIT_CHILD_BLOCK_PUSH_SILVER_RUPEE, { "Child-side Block Pushing room in the Spirit Temple", "Child-side Block Pushing room in the Spirit Temple", "Child-side Block Pushing room in the Spirit Temple" } },
     { RG_SPIRIT_BOULDER_SILVER_RUPEE, { "Boulder room in the Spirit Temple", "Boulder room in the Spirit Temple", "Boulder room in the Spirit Temple" } },
     { RG_SHADOW_SCYTHE_SILVER_RUPEE, { "Spinning Scythes room in the Shadow Temple", "Spinning Scythes room in the Shadow Temple", "Spinning Scythes room in the Shadow Temple" } },

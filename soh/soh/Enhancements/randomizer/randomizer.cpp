@@ -4332,6 +4332,19 @@ void CreateGetItemMessages(std::vector<GetItemMessage> messageEntries) {
                                                     { TEXTBOX_TYPE_BLUE, TEXTBOX_POS_BOTTOM, messageEntry.english,
                                                         messageEntry.german, messageEntry.french });
     }
+    // Special Case for Silver Rupees
+    //TODO: AI Translated Text, get translation from native speaker.
+    customMessageManager->CreateMessage(Randomizer::getItemMessageTableID, RG_SILVER_RUPEE_FIRST,
+                                        { TEXTBOX_TYPE_BLUE, TEXTBOX_POS_BOTTOM,
+                                          "You got a %cSilver Rupee%w for the&%g{{location}}%w!",
+                                          "Du hast eine %cSilberne Rupie%w für die&%g{{location}}%w!",
+                                          "Vous avez reçu une %cRoupie d'Argent%w pour le&%g{{location}}%w!" });
+    // Special Case for Silver Rupee Pourches
+    customMessageManager->CreateMessage(Randomizer::getItemMessageTableID, RG_SILVER_RUPEE_POUCH_FIRST,
+                                        { TEXTBOX_TYPE_BLUE, TEXTBOX_POS_BOTTOM,
+                                          "You got a %cSilver Rupee Pouch%w for the&%g{{location}}%w!",
+                                          "Du hast einen %cBeutel mit Silberrupien%g für die für die&%g{{location}}%w!",
+                                          "Vous avez reçu une %cPochette en Roupie d'Argent%w pour le&%g{{location}}%w!" });
 }
 
 void CreateRupeeMessages() {
@@ -4369,6 +4382,44 @@ CustomMessageEntry Randomizer::GetRupeeMessage(u16 rupeeTextId) {
     std::string germanName = RandomElement(germanRupeeNames);
     std::string frenchName = RandomElement(frenchRupeeNames);
     CustomMessageManager::ReplaceStringInMessage(messageEntry, "{{rupee}}", englishName, germanName, frenchName);
+    return messageEntry;
+}
+
+std::unordered_map<RandomizerGet, CustomMessageMinimal> silverRupeeRoomNames = { 
+    // TODO: Translate
+    //                              English       "German"      "French"
+    { RG_ICE_CAVERN_SILVER_RUPEE, { "Ice Cavern", "Ice Cavern", "Ice Cavern" } },
+    { RG_BOTTOM_OF_THE_WELL_SILVER_RUPEE, { "Bottom of the Well", "Bottom of the Well", "Bottom of the Well" } },
+    { RG_GERUDO_TRAINING_GROUNDS_BOULDER_SILVER_RUPEE, { "Boulder Maze in the Gerudo Training Grounds", "Boulder Maze in the Gerudo Training Grounds", "Boulder Maze in the Gerudo Training Grounds" } },
+    { RG_GERUDO_TRAINING_GROUNDS_LAVA_SILVER_RUPEE, { "Lava room in the Gerudo Training Grounds", "Lava room in the Gerudo Training Grounds", "Lava room in the Gerudo Training Grounds" } },
+    { RG_SPIRIT_BOULDER_SILVER_RUPEE, { "Boulder room in the Spirit Temple", "Boulder room in the Spirit Temple", "Boulder room in the Spirit Temple" } },
+    { RG_SHADOW_SCYTHE_SILVER_RUPEE, { "Spinning Scythes room in the Shadow Temple", "Spinning Scythes room in the Shadow Temple", "Spinning Scythes room in the Shadow Temple" } },
+    { RG_SHADOW_OUTSIDE_SPIKE_RAIN_SILVER_RUPEE, { "door to the Falling Spikes room in the Shadow Temple", "door to the Falling Spikes room in the Shadow Temple", "door to the Falling Spikes room in the Shadow Temple" } },
+    { RG_SHADOW_INVISIBLE_SPIKES_SILVER_RUPEE, { "room with Invisible Spikes in the Shadow Temple", "room with Invisible Spikes in the Shadow Temple", "room with Invisible Spikes in the Shadow Temple" } },
+    { RG_FOREST_TRIAL_SILVER_RUPEE, { "Forest Trial in Ganon's Castle", "Forest Trial in Ganon's Castle", "Forest Trial in Ganon's Castle" } },
+    { RG_FIRE_TRIAL_SILVER_RUPEE, { "Fire Trial in Ganon's Castle", "Fire Trial in Ganon's Castle", "Fire Trial in Ganon's Castle" } },
+    { RG_SPIRIT_TRIAL_SILVER_RUPEE, { "Spirit Trial in Ganon's Castle", "Spirit Trial in Ganon's Castle", "Spirit Trial in Ganon's Castle" } },
+    { RG_LIGHT_TRIAL_SILVER_RUPEE, { "Light Trial in Ganon's Castle", "Light Trial in Ganon's Castle", "Light Trial in Ganon's Castle" } },
+    { RG_DODONGOS_CAVERN_MQ_SILVER_RUPEE, { "Dodongo's Cavern", "Dodongo's Cavern", "Dodongo's Cavern" } },
+    { RG_SPIRIT_MQ_LOBBY_SILVER_RUPEE, { "Spirit Temple Lobby", "Spirit Temple Lobby", "Spirit Temple Lobby" } },
+};
+
+CustomMessageEntry Randomizer::GetSilverRupeeMessage(u16 rgid) {
+    CustomMessageEntry messageEntry;
+    if (rgid >= RG_SILVER_RUPEE_FIRST && rgid <= RG_SILVER_RUPEE_LAST) {
+        messageEntry =
+            CustomMessageManager::Instance->RetrieveMessage(Randomizer::getItemMessageTableID, RG_SILVER_RUPEE_FIRST);
+    } else if (rgid >= RG_SILVER_RUPEE_POUCH_FIRST && rgid <= RG_SILVER_RUPEE_POUCH_LAST) {
+        messageEntry =
+            CustomMessageManager::Instance->RetrieveMessage(Randomizer::getItemMessageTableID, RG_SILVER_RUPEE_POUCH_FIRST);
+    } else {
+        return NULL_CUSTOM_MESSAGE;
+    }
+    u16 roomNameKey =
+        (rgid >= RG_SILVER_RUPEE_POUCH_FIRST) ? (rgid - RG_SILVER_RUPEE_POUCH_FIRST) + RG_SILVER_RUPEE_FIRST : rgid;
+    CustomMessageMinimal locationNames = silverRupeeRoomNames[(RandomizerGet)roomNameKey];
+    CustomMessageManager::ReplaceStringInMessage(messageEntry, "{{location}}", locationNames.english,
+                                                 locationNames.german, locationNames.french);
     return messageEntry;
 }
 
@@ -4913,6 +4964,36 @@ void InitRandoItemTable() {
         GET_ITEM(RG_ICE_CAVERN_COMPASS,                OBJECT_GI_COMPASS,  GID_COMPASS,          TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_LESSER,    MOD_RANDOMIZER, RG_ICE_CAVERN_COMPASS),
         GET_ITEM(RG_MAGIC_BEAN_PACK,                   OBJECT_GI_BEAN,     GID_BEAN,             TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_MAJOR,     MOD_RANDOMIZER, RG_MAGIC_BEAN_PACK),
         GET_ITEM(RG_TYCOON_WALLET,                     OBJECT_GI_PURSE,    GID_WALLET_GIANT,     TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_LESSER,    MOD_RANDOMIZER, RG_TYCOON_WALLET),
+        GET_ITEM(RG_ICE_CAVERN_SILVER_RUPEE,                            OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_ICE_CAVERN_SILVER_RUPEE),
+        GET_ITEM(RG_BOTTOM_OF_THE_WELL_SILVER_RUPEE,                    OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_BOTTOM_OF_THE_WELL_SILVER_RUPEE),
+        GET_ITEM(RG_GERUDO_TRAINING_GROUNDS_BOULDER_SILVER_RUPEE,       OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_GERUDO_TRAINING_GROUNDS_BOULDER_SILVER_RUPEE),
+        GET_ITEM(RG_GERUDO_TRAINING_GROUNDS_LAVA_SILVER_RUPEE,          OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_GERUDO_TRAINING_GROUNDS_LAVA_SILVER_RUPEE),
+        GET_ITEM(RG_GERUDO_TRAINING_GROUNDS_TOILET_SILVER_RUPEE,        OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_GERUDO_TRAINING_GROUNDS_TOILET_SILVER_RUPEE),
+        GET_ITEM(RG_SPIRIT_BOULDER_SILVER_RUPEE,                        OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SPIRIT_BOULDER_SILVER_RUPEE),
+        GET_ITEM(RG_SHADOW_SCYTHE_SILVER_RUPEE,                         OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SHADOW_SCYTHE_SILVER_RUPEE),
+        GET_ITEM(RG_SHADOW_OUTSIDE_SPIKE_RAIN_SILVER_RUPEE,             OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SHADOW_OUTSIDE_SPIKE_RAIN_SILVER_RUPEE),
+        GET_ITEM(RG_SHADOW_INVISIBLE_SPIKES_SILVER_RUPEE,               OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SHADOW_INVISIBLE_SPIKES_SILVER_RUPEE),
+        GET_ITEM(RG_FOREST_TRIAL_SILVER_RUPEE,                          OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_FOREST_TRIAL_SILVER_RUPEE),
+        GET_ITEM(RG_FIRE_TRIAL_SILVER_RUPEE,                            OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_FIRE_TRIAL_SILVER_RUPEE),
+        GET_ITEM(RG_SPIRIT_TRIAL_SILVER_RUPEE,                          OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SPIRIT_TRIAL_SILVER_RUPEE),
+        GET_ITEM(RG_LIGHT_TRIAL_SILVER_RUPEE,                           OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_LIGHT_TRIAL_SILVER_RUPEE),
+        GET_ITEM(RG_DODONGOS_CAVERN_MQ_SILVER_RUPEE,                    OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_DODONGOS_CAVERN_MQ_SILVER_RUPEE),
+        GET_ITEM(RG_SPIRIT_MQ_LOBBY_SILVER_RUPEE,                       OBJECT_GI_RUPY,  GID_RUPEE_GOLD,   TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SPIRIT_MQ_LOBBY_SILVER_RUPEE),
+        GET_ITEM(RG_ICE_CAVERN_SILVER_RUPEE_POUCH,                      OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_ICE_CAVERN_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_BOTTOM_OF_THE_WELL_SILVER_RUPEE_POUCH,              OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_BOTTOM_OF_THE_WELL_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_GERUDO_TRAINING_GROUNDS_BOULDER_SILVER_RUPEE_POUCH, OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_GERUDO_TRAINING_GROUNDS_BOULDER_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_GERUDO_TRAINING_GROUNDS_LAVA_SILVER_RUPEE_POUCH,    OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_GERUDO_TRAINING_GROUNDS_LAVA_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_GERUDO_TRAINING_GROUNDS_TOILET_SILVER_RUPEE_POUCH,  OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_GERUDO_TRAINING_GROUNDS_TOILET_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_SPIRIT_BOULDER_SILVER_RUPEE_POUCH,                  OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SPIRIT_BOULDER_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_SHADOW_SCYTHE_SILVER_RUPEE_POUCH,                   OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SHADOW_SCYTHE_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_SHADOW_OUTSIDE_SPIKE_RAIN_SILVER_RUPEE_POUCH,       OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG, ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SHADOW_OUTSIDE_SPIKE_RAIN_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_SHADOW_INVISIBLE_SPIKES_SILVER_RUPEE_POUCH,         OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SHADOW_INVISIBLE_SPIKES_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_FOREST_TRIAL_SILVER_RUPEE_POUCH,                    OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_FOREST_TRIAL_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_FIRE_TRIAL_SILVER_RUPEE_POUCH,                      OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_FIRE_TRIAL_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_SPIRIT_TRIAL_SILVER_RUPEE_POUCH,                    OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SPIRIT_TRIAL_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_LIGHT_TRIAL_SILVER_RUPEE_POUCH,                     OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_LIGHT_TRIAL_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_DODONGOS_CAVERN_MQ_SILVER_RUPEE_POUCH,              OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_DODONGOS_CAVERN_MQ_SILVER_RUPEE_POUCH),
+        GET_ITEM(RG_SPIRIT_MQ_LOBBY_SILVER_RUPEE_POUCH,                 OBJECT_GI_PURSE, GID_WALLET_ADULT, TEXT_RANDOMIZER_CUSTOM_ITEM, 0x80, CHEST_ANIM_LONG,  ITEM_CATEGORY_SMALL_KEY, MOD_RANDOMIZER, RG_SPIRIT_MQ_LOBBY_SILVER_RUPEE_POUCH),
     };
     ItemTableManager::Instance->AddItemTable(MOD_RANDOMIZER);
     for (int i = 0; i < ARRAY_COUNT(extendedVanillaGetItemTable); i++) {
@@ -4929,6 +5010,7 @@ void InitRandoItemTable() {
         } else if (randoGetItemTable[i].itemId == RG_DOUBLE_DEFENSE) {
             randoGetItemTable[i].drawFunc = (CustomDrawFunc)Randomizer_DrawDoubleDefense;
         }
+        // TODO: Add draw function for silver rupees
         ItemTableManager::Instance->AddItemEntry(MOD_RANDOMIZER, randoGetItemTable[i].itemId, randoGetItemTable[i]);
     }
 }

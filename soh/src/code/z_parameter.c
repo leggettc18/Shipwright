@@ -2572,6 +2572,15 @@ u16 Randomizer_Item_Give(PlayState* play, GetItemEntry giEntry) {
         return RG_NONE;
     }
 
+    if (item >= RG_SILVER_RUPEE_FIRST && item <= RG_SILVER_RUPEE_POUCH_LAST) {
+        if (item <= RG_SILVER_RUPEE_LAST) {
+            // TODO: increase corresponding silver rupee count by 1
+        }
+        if (item >= RG_SILVER_RUPEE_POUCH_FIRST) {
+            // TODO: increase corresponding silver rupee count to the max.
+        }
+    }
+
     temp = gSaveContext.inventory.items[slot];
     osSyncPrintf("Item_Register(%d)=%d  %d\n", slot, item, temp);
     INV_CONTENT(item) = item;

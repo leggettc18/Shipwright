@@ -1940,6 +1940,8 @@ extern "C" int CustomMessage_RetrieveIfExists(PlayState* play) {
                 }
             } else if (player->getItemEntry.getItemId >= RG_DEKU_TREE_MAP && player->getItemEntry.getItemId <= RG_ICE_CAVERN_MAP) {
                 messageEntry = OTRGlobals::Instance->gRandomizer->GetMapGetItemMessageWithHint(player->getItemEntry);
+            } else if (player->getItemEntry.getItemId >= RG_SILVER_RUPEE_FIRST && player->getItemEntry.getItemId <= RG_SILVER_RUPEE_POUCH_LAST) {
+                messageEntry = OTRGlobals::Instance->gRandomizer->GetSilverRupeeMessage(player->getItemEntry.getItemId);
             } else {
                 messageEntry = Randomizer_GetCustomGetItemMessage(player);
             }

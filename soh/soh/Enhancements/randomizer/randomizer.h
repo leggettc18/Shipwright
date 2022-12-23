@@ -86,6 +86,7 @@ class Randomizer {
     CustomMessageEntry GetMapGetItemMessageWithHint(GetItemEntry itemEntry);
     static void CreateCustomMessages();
     static CustomMessageEntry GetRupeeMessage(u16 rupeeTextId);
+    CustomMessageEntry GetSilverRupeeMessage(u16 rgid);
     bool CheckContainsVanillaItem(RandomizerCheck randoCheck);
 };
 

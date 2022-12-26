@@ -98,6 +98,8 @@ Randomizer::Randomizer() {
             item.GetName().french,
         };
     }
+
+    randoContext = std::make_shared<RandomizerContext>();
 }
 
 Sprite* Randomizer::GetSeedTexture(uint8_t index) {
@@ -123,21 +125,6 @@ std::unordered_map<std::string, RandomizerInf> spoilerFileTrialToEnum = {
     { "l'épreuve de l'Ombre", RAND_INF_TRIALS_DONE_SHADOW_TRIAL },
     { "the Light Trial", RAND_INF_TRIALS_DONE_LIGHT_TRIAL },
     { "l'épreuve de la Lumière", RAND_INF_TRIALS_DONE_LIGHT_TRIAL }
-};
-
-std::unordered_map<std::string, SceneID> spoilerFileDungeonToScene = {
-    { "Deku Tree", SCENE_YDAN },
-    { "Dodongo's Cavern", SCENE_DDAN },
-    { "Jabu Jabu's Belly", SCENE_BDAN },
-    { "Forest Temple", SCENE_BMORI1 },
-    { "Fire Temple", SCENE_HIDAN },
-    { "Water Temple", SCENE_MIZUSIN },
-    { "Spirit Temple", SCENE_JYASINZOU },
-    { "Shadow Temple", SCENE_HAKADAN },
-    { "Bottom of the Well", SCENE_HAKADANCH },
-    { "Ice Cavern", SCENE_ICE_DOUKUTO },
-    { "Gerudo Training Grounds", SCENE_MEN },
-    { "Ganon's Castle", SCENE_GANONTIKA }
 };
 
 std::unordered_map<s16, s16>
@@ -521,7 +508,7 @@ void Randomizer::LoadMasterQuestDungeons(const char* spoilerFileName) {
     if (strcmp(spoilerFileName, "") != 0) {
         ParseMasterQuestDungeonsFile(spoilerFileName);
     }
-    gSaveContext.mqDungeonCount = this->masterQuestDungeons.size();
+    gSaveContext.mqDungeonCount = this->randoContext->MasterQuestDungeonsCount();
 }
 
 void Randomizer::ParseRandomizerSettingsFile(const char* spoilerFileName) {
@@ -1147,16 +1134,10 @@ void Randomizer::ParseMasterQuestDungeonsFile(const char* spoilerFileName) {
         return;
     }
 
-    this->masterQuestDungeons.clear();
-
     try {
         json spoilerFileJson;
         spoilerFileStream >> spoilerFileJson;
-        json mqDungeonsJson = spoilerFileJson["masterQuestDungeons"];
-
-        for (auto it = mqDungeonsJson.begin(); it != mqDungeonsJson.end(); it++) {
-            this->masterQuestDungeons.emplace(spoilerFileDungeonToScene[it.value()]);
-        }
+        this->randoContext->ParseMasterQuestDungeonsSpoiler(spoilerFileJson);
     } catch (const std::exception& e) {
         return;
     }
@@ -4313,7 +4294,7 @@ CustomMessageEntry Randomizer::GetMapGetItemMessageWithHint(GetItemEntry itemEnt
             break;
     }
 
-    if (this->masterQuestDungeons.empty() || this->masterQuestDungeons.size() >= 12) {
+    if (this->randoContext->MasterQuestDungeonsCount() > 0 || this->randoContext->MasterQuestDungeonsCount() >= 12) {
         CustomMessageManager::ReplaceStringInMessage(messageEntry, "{{typeHint}}", "");
     } else if (ResourceMgr_IsSceneMasterQuest(sceneNum)) {
         CustomMessageManager::ReplaceStringInMessage(messageEntry, "{{typeHint}}", mapGetItemHints[0][1], mapGetItemHints[1][1], mapGetItemHints[2][1]);

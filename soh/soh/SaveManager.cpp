@@ -1,5 +1,6 @@
 #include "SaveManager.h"
 #include "OTRGlobals.h"
+#include "Enhancements/randomizer/randomizer_static_data.h"
 
 #include "z64.h"
 #include "functions.h"
@@ -216,11 +217,11 @@ void SaveManager::LoadRandomizerVersion2() {
 
     SaveManager::Instance->LoadData("masterQuestDungeonCount", gSaveContext.mqDungeonCount, (uint8_t)0);
 
-    OTRGlobals::Instance->gRandomizer->masterQuestDungeons.clear();
+    OTRGlobals::Instance->gRandomizer->randoContext->ClearMasterQuestDungeons();
     SaveManager::Instance->LoadArray("masterQuestDungeons", gSaveContext.mqDungeonCount, [&](size_t i) {
         uint16_t scene;
         SaveManager::Instance->LoadData("", scene);
-        randomizer->masterQuestDungeons.emplace(scene);
+        randomizer->randoContext->SetDungeonMasterQuest((SceneID)scene);
     });
 }
 
@@ -294,8 +295,10 @@ void SaveManager::SaveRandomizer() {
     SaveManager::Instance->SaveData("masterQuestDungeonCount", gSaveContext.mqDungeonCount);
 
     std::vector<uint16_t> masterQuestDungeons;
-    for (const auto scene : randomizer->masterQuestDungeons) {
-        masterQuestDungeons.push_back(scene);
+    for (const auto scene : dungeonScenes) {
+        if (randomizer->randoContext->IsDungeonMasterQuest(scene)) {
+            masterQuestDungeons.push_back((uint16_t)scene);
+        }
     }
     SaveManager::Instance->SaveArray("masterQuestDungeons", masterQuestDungeons.size(), [&](size_t i) {
         SaveManager::Instance->SaveData("", masterQuestDungeons[i]);

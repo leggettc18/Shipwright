@@ -287,7 +287,7 @@ void DrawCheckTracker(bool& open) {
 
                 if (isThisAreaSpoiled) {
                     if (showVOrMQ && RandomizerCheckObjects::AreaIsDungeon(obj.rcArea)) {
-                        if (OTRGlobals::Instance->gRandomizer->masterQuestDungeons.contains(DungeonSceneLookupByArea(obj.rcArea)))
+                        if (OTRGlobals::Instance->gRandomizer->randoContext->IsDungeonMasterQuest(DungeonSceneLookupByArea(obj.rcArea)))
                             ImGui::Text("(%d/%d) - MQ", areaChecksGotten[obj.rcArea], areaChecksTotal[obj.rcArea]);
                         else
                             ImGui::Text("(%d/%d) - Vanilla", areaChecksGotten[obj.rcArea], areaChecksTotal[obj.rcArea]);
@@ -474,8 +474,8 @@ bool IsVisibleInCheckTracker(RandomizerCheckObject rcObj) {
         (rcObj.rcType != RCTYPE_CHEST_GAME) &&      // don't show non final reward chest game checks until we support shuffling them
         (!RandomizerCheckObjects::AreaIsDungeon(rcObj.rcArea) ||
             rcObj.vOrMQ == RCVORMQ_BOTH ||
-            rcObj.vOrMQ == RCVORMQ_MQ && OTRGlobals::Instance->gRandomizer->masterQuestDungeons.contains(rcObj.sceneId) ||
-            rcObj.vOrMQ == RCVORMQ_VANILLA && !OTRGlobals::Instance->gRandomizer->masterQuestDungeons.contains(rcObj.sceneId)
+            rcObj.vOrMQ == RCVORMQ_MQ && OTRGlobals::Instance->gRandomizer->randoContext->IsDungeonMasterQuest(rcObj.sceneId) ||
+            rcObj.vOrMQ == RCVORMQ_VANILLA && !OTRGlobals::Instance->gRandomizer->randoContext->IsDungeonMasterQuest(rcObj.sceneId)
         ) &&
         (rcObj.rcType != RCTYPE_SHOP                || showShops) &&
         (rcObj.rcType != RCTYPE_SCRUB ||

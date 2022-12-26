@@ -666,10 +666,8 @@ uint32_t IsSceneMasterQuest(s16 sceneNum) {
         } else {
             value = 0;
             if (gSaveContext.n64ddFlag) {
-                if (!OTRGlobals::Instance->gRandomizer->masterQuestDungeons.empty()) {
-                    if (gPlayState != NULL && OTRGlobals::Instance->gRandomizer->masterQuestDungeons.contains(sceneNum)) {
-                        value = 1;
-                    }
+                if (gPlayState != NULL && OTRGlobals::Instance->gRandomizer->randoContext->IsDungeonMasterQuest((SceneID)sceneNum)) {
+                    value = 1;
                 }
             }
         }

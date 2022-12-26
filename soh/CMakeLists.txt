@@ -201,6 +201,8 @@ set(Header_Files__soh__Enhancements__randomizer
     "soh/Enhancements/randomizer/randomizer_check_objects.h"
     "soh/Enhancements/randomizer/draw.h"
     "soh/Enhancements/randomizer/rando_hash.h"
+    "soh/Enhancements/randomizer/randomizer_context.h"
+    "soh/Enhancements/randomizer/randomizer_static_data.h"
 )
 source_group("Header Files\\soh\\Enhancements\\randomizer" FILES ${Header_Files__soh__Enhancements__randomizer})
 
@@ -332,6 +334,7 @@ set(Source_Files__soh__Enhancements__randomizer
     "soh/Enhancements/randomizer/adult_trade_shuffle.c"
     "soh/Enhancements/randomizer/randomizer_check_objects.cpp"
     "soh/Enhancements/randomizer/draw.cpp"
+    "soh/Enhancements/randomizer/randomizer_context.cpp"
 )
 source_group("Source Files\\soh\\Enhancements\\randomizer" FILES ${Source_Files__soh__Enhancements__randomizer})
 

@@ -4428,7 +4428,7 @@ std::unordered_map<RandomizerGet, CustomMessageMinimal> silverRupeeRoomNames = {
     { RG_FIRE_TRIAL_SILVER_RUPEE, { "Fire Trial in Ganon's Castle", "Fire Trial in Ganon's Castle", "Fire Trial in Ganon's Castle" } },
     { RG_SPIRIT_TRIAL_SILVER_RUPEE, { "Spirit Trial in Ganon's Castle", "Spirit Trial in Ganon's Castle", "Spirit Trial in Ganon's Castle" } },
     { RG_LIGHT_TRIAL_SILVER_RUPEE, { "Light Trial in Ganon's Castle", "Light Trial in Ganon's Castle", "Light Trial in Ganon's Castle" } },
-    { RG_DODONGOS_CAVERN_MQ_SILVER_RUPEE, { "Dodongo's Cavern", "Dodongo's Cavern", "Dodongo's Cavern" } },
+    { RG_DODONGOS_CAVERN_MQ_SILVER_RUPEE, { "Dodongo's Cavern Staircase Room", "Dodongo's Cavern Staircase Room", "Dodongo's Cavern Staircase Room" } },
     { RG_SPIRIT_MQ_LOBBY_SILVER_RUPEE, { "Spirit Temple Lobby", "Spirit Temple Lobby", "Spirit Temple Lobby" } },
     { RG_SHADOW_MQ_INVISIBLE_SCYTHE_SILVER_RUPEE, { "Invisible Scythes room in the Shadow Temple", "Invisible Scythes room in the Shadow Temple", "Invisible Scythes room in the Shadow Temple" } },
     { RG_WATER_TRIAL_MQ_SILVER_RUPEE, { "Water Trial in Ganon's Castle", "Water Trial in Ganon's Castle", "Water Trial in Ganon's Castle" } },

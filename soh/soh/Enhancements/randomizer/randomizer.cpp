@@ -5048,8 +5048,11 @@ void InitRandoItemTable() {
             randoGetItemTable[i].drawFunc = (CustomDrawFunc)Randomizer_DrawBossKey;
         } else if (randoGetItemTable[i].itemId == RG_DOUBLE_DEFENSE) {
             randoGetItemTable[i].drawFunc = (CustomDrawFunc)Randomizer_DrawDoubleDefense;
+        } else if (randoGetItemTable[i].itemId >= RG_SILVER_RUPEE_FIRST &&
+                   randoGetItemTable[i].itemId <= RG_SILVER_RUPEE_LAST) {
+            randoGetItemTable[i].drawFunc = (CustomDrawFunc)Randomizer_DrawSilverRupee;
         }
-        // TODO: Add draw function for silver rupees
+        // TODO: Add drawing function for the Silver Rupee Pouches
         ItemTableManager::Instance->AddItemEntry(MOD_RANDOMIZER, randoGetItemTable[i].itemId, randoGetItemTable[i]);
     }
 }

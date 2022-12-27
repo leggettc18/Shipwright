@@ -1920,6 +1920,14 @@ extern "C" CustomMessageEntry Randomizer_GetCustomGetItemMessage(Player* player)
     return getItemText;
 }
 
+extern "C" uint8_t RandoContext_IncrementSilverRupeeCount(RandomizerGet silverRupeeRGID) {
+    return OTRGlobals::Instance->gRandomizer->randoContext->IncrementSilverRupeePuzzleCount(silverRupeeRGID);
+}
+
+extern "C" void RandoContext_CompleteSilverRupeePuzzle(RandomizerGet silverRupeeRGID) {
+    OTRGlobals::Instance->gRandomizer->randoContext->CompleteSilverRupeePuzzle(silverRupeeRGID);
+}
+
 extern "C" int CustomMessage_RetrieveIfExists(PlayState* play) {
     MessageContext* msgCtx = &play->msgCtx;
     uint16_t textId = msgCtx->textId;

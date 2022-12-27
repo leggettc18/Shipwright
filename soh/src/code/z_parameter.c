@@ -2574,10 +2574,10 @@ u16 Randomizer_Item_Give(PlayState* play, GetItemEntry giEntry) {
 
     if (item >= RG_SILVER_RUPEE_FIRST && item <= RG_SILVER_RUPEE_POUCH_LAST) {
         if (item <= RG_SILVER_RUPEE_LAST) {
-            // TODO: increase corresponding silver rupee count by 1
+            RandoContext_IncrementSilverRupeeCount(item);
         }
         if (item >= RG_SILVER_RUPEE_POUCH_FIRST) {
-            // TODO: increase corresponding silver rupee count to the max.
+            RandoContext_CompleteSilverRupeePuzzle(item);
         }
     }
 

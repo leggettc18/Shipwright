@@ -130,6 +130,8 @@ GetItemEntry Randomizer_GetItemFromActorWithoutObtainabilityCheck(s16 actorId, s
 GetItemEntry Randomizer_GetItemFromKnownCheck(RandomizerCheck randomizerCheck, GetItemID ogId);
 GetItemEntry Randomizer_GetItemFromKnownCheckWithoutObtainabilityCheck(RandomizerCheck randomizerCheck, GetItemID ogId);
 ItemObtainability Randomizer_GetItemObtainabilityFromRandomizerCheck(RandomizerCheck randomizerCheck);
+uint8_t RandoContext_IncrementSilverRupeeCount(RandomizerGet silverRupeeRGID);
+void RandoContext_CompleteSilverRupeePuzzle(RandomizerGet silverRupeeRGID);
 int CustomMessage_RetrieveIfExists(PlayState* play);
 void Overlay_DisplayText(float duration, const char* text);
 GetItemEntry ItemTable_Retrieve(int16_t getItemID);

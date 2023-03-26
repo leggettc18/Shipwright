@@ -52,7 +52,7 @@ class Item {
     void UndoEffect();
 
     Rando::ItemOverride_Value Value() const;
-    
+
     const Text& GetName() const;
     bool IsAdvancement() const;
     int GetItemID() const;

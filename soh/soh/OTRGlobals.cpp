@@ -296,6 +296,7 @@ OTRGlobals::OTRGlobals() {
     gSaveStateMgr = std::make_shared<SaveStateMgr>();
     gRandoContext = Rando::Context::CreateInstance();
     gRandomizer = std::make_shared<Randomizer>();
+    gRandoContext = Rando::Context::CreateInstance();
 
     hasMasterQuest = hasOriginal = false;
 

@@ -96,6 +96,10 @@ RandomizerGet Rando::Location::GetVanillaItem() const {
     return vanillaItem;
 }
 
+RandomizerGet Rando::Location::GetVanillaItem() const {
+    return vanillaItem;
+}
+
 Rando::Location Rando::Location::Base(RandomizerCheck rc, RandomizerCheckQuest quest_, RandomizerCheckType checkType_,
                                       RandomizerCheckArea area_, ActorID actorId_, uint8_t scene_, int32_t actorParams_,
                                       uint8_t flag_, std::string&& shortName_, std::string&& spoilerName_,

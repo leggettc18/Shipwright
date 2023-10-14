@@ -2057,7 +2057,7 @@ namespace Settings {
       StartingDoubleDefense.SetSelectedIndex(0);
     }
 
-    //ResolveExcludedLocationConflicts();
+    ResolveExcludedLocationConflicts();
   }
 
   bool IsMQOption(Option *option) {

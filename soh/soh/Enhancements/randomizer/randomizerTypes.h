@@ -3756,6 +3756,12 @@ typedef enum {
 } RandoOptionChestGame;
 
 typedef enum {
+    RO_MQ_SET_VANILLA,
+    RO_MQ_SET_MQ,
+    RO_MQ_SET_RANDOM,
+} RandoOptionMQSet;
+
+typedef enum {
     CAN_OBTAIN,
     CANT_OBTAIN_MISC,
     CANT_OBTAIN_ALREADY_HAVE,

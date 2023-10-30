@@ -296,7 +296,7 @@ OTRGlobals::OTRGlobals() {
     gSaveStateMgr = std::make_shared<SaveStateMgr>();
     gRandoContext = Rando::Context::CreateInstance();
     gRandoContext->AddExcludedOptions();
-    gRandoContext->GetSettings().CreateOptions();
+    gRandoContext->GetSettings()->CreateOptions();
     gRandomizer = std::make_shared<Randomizer>();
     gRandoContext = Rando::Context::CreateInstance();
 
@@ -2034,7 +2034,7 @@ extern "C" ItemObtainability Randomizer_GetItemObtainabilityFromRandomizerCheck(
 extern "C" void Randomizer_GenerateSeed() {
     std::string seed = "";
     if (OTRGlobals::Instance->gRandoContext->IsSpoilerLoaded()) {
-        seed = OTRGlobals::Instance->gRandoContext->GetSettings().GetSeedString();
+        seed = OTRGlobals::Instance->gRandoContext->GetSettings()->GetSeedString();
     }
     GenerateRandomizer(seed);
 }

@@ -1148,9 +1148,11 @@ uint32_t IsSceneMasterQuest(s16 sceneNum) {
                 value = 1;
             } else {
                 value = 0;
-                if (IS_RANDO &&
-                    OTRGlobals::Instance->gRandoContext->GetDungeons()->GetDungeonFromScene(sceneNum)->IsMQ()) {
-                    value = 1;
+                if (IS_RANDO) {
+                    auto dungeon = OTRGlobals::Instance->gRandoContext->GetDungeons()->GetDungeonFromScene(sceneNum);
+                    if (dungeon != nullptr && dungeon->IsMQ()) {
+                        value = 1;
+                    }
                 }
             }
         }

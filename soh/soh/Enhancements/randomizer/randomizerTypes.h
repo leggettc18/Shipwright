@@ -3757,6 +3757,14 @@ typedef enum {
 } RandoOptionMQSet;
 
 typedef enum {
+    RFS_GENERATE_FROM,
+    RFS_OPEN_IMGUI,
+    RFS_PREVIOUS_SEED,
+    RFS_PRESETS,
+    RFS_MAX,
+} RandoFileSelectSettingKey;
+
+typedef enum {
     CAN_OBTAIN,
     CANT_OBTAIN_MISC,
     CANT_OBTAIN_ALREADY_HAVE,

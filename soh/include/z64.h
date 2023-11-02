@@ -1508,6 +1508,13 @@ typedef struct {
     uint8_t bossRushOffset;
     int16_t bossRushUIAlpha;
     uint16_t bossRushArrowOffset;
+    uint8_t randoFSIndex;
+    uint8_t randoFSOffset;
+    int16_t randoFSUIAlpha;
+    uint16_t randoFSArrowOffset;
+    uint8_t randoFSOptions[RFS_MAX];
+    uint8_t randoFSOptionIndex;
+    uint8_t randoFSOptionVisible;
 } FileChooseContext; // size = 0x1CAE0
 
 typedef enum {

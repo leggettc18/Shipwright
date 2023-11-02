@@ -1533,7 +1533,7 @@ s16 func_8001F404(s16 dropId) {
     }
 
     if ((CVarGetInteger("gBombchuDrops", 0) || 
-        (IS_RANDO && Randomizer_GetSettingValue(RSK_ENABLE_BOMBCHU_DROPS) == 1)) &&
+        (IS_RANDO && Randomizer_GetSettingValue(RSK_AMMO_DROPS) == 1)) &&
         (dropId == ITEM00_BOMBS_A || dropId == ITEM00_BOMBS_B || dropId == ITEM00_BOMBS_SPECIAL)) {
         dropId = EnItem00_ConvertBombDropToBombchu(dropId);
     }
@@ -1567,8 +1567,29 @@ EnItem00* Item_DropCollectible(PlayState* play, Vec3f* spawnPos, s16 params) {
     params &= 0x3FFF;
 
     if ((params & 0x00FF) == ITEM00_HEART && CVarGetInteger("gNoHeartDrops", 0)) { return NULL; }
+    u8 dropId = params & 0x00FF;
+    if (Randomizer_GetSettingValue(RSK_AMMO_DROPS) == RO_AMMO_DROPS_OFF) {
+        switch (dropId) {
+            case ITEM00_BOMBS_A:
+            case ITEM00_BOMBS_B:
+            case ITEM00_BOMBS_SPECIAL:
+            case ITEM00_BOMBCHU:
+            case ITEM00_ARROWS_SINGLE:
+            case ITEM00_ARROWS_MEDIUM:
+            case ITEM00_ARROWS_SMALL:
+            case ITEM00_ARROWS_LARGE:
+            case ITEM00_SEEDS:
+            case ITEM00_MAGIC_SMALL:
+            case ITEM00_MAGIC_LARGE:
+            case ITEM00_NUTS:
+                dropId = ITEM00_RUPEE_BLUE;
+                break;
+            default:
+                break;
+        }
+    }
 
-    if (((params & 0x00FF) == ITEM00_FLEXIBLE) && !param4000) {
+    if ((dropId == ITEM00_FLEXIBLE) && !param4000) {
         // TODO: Prevent the cast to EnItem00 here since this is a different actor (En_Elf)
         spawnedActor = (EnItem00*)Actor_Spawn(&play->actorCtx, play, ACTOR_EN_ELF, spawnPos->x,
                                               spawnPos->y + 40.0f, spawnPos->z, 0, 0, 0, FAIRY_HEAL_TIMED, true);
@@ -1576,7 +1597,7 @@ EnItem00* Item_DropCollectible(PlayState* play, Vec3f* spawnPos, s16 params) {
                                           DEADSOUND_REPEAT_MODE_OFF, 40);
     } else {
         if (!param8000) {
-            params = func_8001F404(params & 0x00FF);
+            params = func_8001F404(dropId);
         }
 
         if (params != -1) {
@@ -1612,15 +1633,36 @@ EnItem00* Item_DropCollectible2(PlayState* play, Vec3f* spawnPos, s16 params) {
     params &= 0x3FFF;
 
     if ((params & 0x00FF) == ITEM00_HEART && CVarGetInteger("gNoHeartDrops", 0)) { return NULL; }
-    
-    if (((params & 0x00FF) == ITEM00_FLEXIBLE) && !param4000) {
+    u8 dropId = params & 0x00FF;
+    if (Randomizer_GetSettingValue(RSK_AMMO_DROPS) == RO_AMMO_DROPS_OFF) {
+        switch (dropId) {
+            case ITEM00_BOMBS_A:
+            case ITEM00_BOMBS_B:
+            case ITEM00_BOMBS_SPECIAL:
+            case ITEM00_BOMBCHU:
+            case ITEM00_ARROWS_SINGLE:
+            case ITEM00_ARROWS_MEDIUM:
+            case ITEM00_ARROWS_SMALL:
+            case ITEM00_ARROWS_LARGE:
+            case ITEM00_SEEDS:
+            case ITEM00_MAGIC_SMALL:
+            case ITEM00_MAGIC_LARGE:
+            case ITEM00_NUTS:
+                dropId = ITEM00_RUPEE_BLUE;
+                break;
+            default:
+                break;
+        }
+    }
+
+    if ((dropId == ITEM00_FLEXIBLE) && !param4000) {
         // TODO: Prevent the cast to EnItem00 here since this is a different actor (En_Elf)
         spawnedActor = (EnItem00*)Actor_Spawn(&play->actorCtx, play, ACTOR_EN_ELF, spawnPos->x,
                                               spawnPos->y + 40.0f, spawnPos->z, 0, 0, 0, FAIRY_HEAL_TIMED, true);
         EffectSsDeadSound_SpawnStationary(play, spawnPos, NA_SE_EV_BUTTERFRY_TO_FAIRY, true,
                                           DEADSOUND_REPEAT_MODE_OFF, 40);
     } else {
-        params = func_8001F404(params & 0x00FF);
+        params = func_8001F404(dropId);
         if (params != -1) {
             spawnedActor = (EnItem00*)Actor_Spawn(&play->actorCtx, play, ACTOR_EN_ITEM00, spawnPos->x,
                                                   spawnPos->y, spawnPos->z, 0, 0, 0, params | param8000 | param3F00, true);
@@ -1725,6 +1767,27 @@ void Item_DropCollectibleRandom(PlayState* play, Actor* fromActor, Vec3f* spawnP
             dropId = ITEM00_RUPEE_RED;
         } else {
             return;
+        }
+    }
+
+    if (Randomizer_GetSettingValue(RSK_AMMO_DROPS) == RO_AMMO_DROPS_OFF) {
+        switch (dropId) {
+            case ITEM00_BOMBS_A:
+            case ITEM00_BOMBS_B:
+            case ITEM00_BOMBS_SPECIAL:
+            case ITEM00_BOMBCHU:
+            case ITEM00_ARROWS_SINGLE:
+            case ITEM00_ARROWS_MEDIUM:
+            case ITEM00_ARROWS_SMALL:
+            case ITEM00_ARROWS_LARGE:
+            case ITEM00_SEEDS:
+            case ITEM00_MAGIC_SMALL:
+            case ITEM00_MAGIC_LARGE:
+            case ITEM00_NUTS:
+                dropId = ITEM00_RUPEE_BLUE;
+                break;
+            default:
+                break;
         }
     }
 

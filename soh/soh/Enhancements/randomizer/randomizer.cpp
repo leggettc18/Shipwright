@@ -1678,7 +1678,7 @@ void GenerateRandomizerImgui(std::string seed = "") {
     cvarSettings[RSK_SHUFFLE_MAGIC_BEANS] = CVarGetInteger("gRandomizeShuffleBeans", 0);
     cvarSettings[RSK_SHUFFLE_MERCHANTS] = CVarGetInteger("gRandomizeShuffleMerchants", RO_SHUFFLE_MERCHANTS_OFF);
     cvarSettings[RSK_SHUFFLE_100_GS_REWARD] = CVarGetInteger("gRandomizeShuffle100GSReward", RO_GENERIC_OFF);
-    cvarSettings[RSK_ENABLE_BOMBCHU_DROPS] = CVarGetInteger("gRandomizeEnableBombchuDrops", 0);
+    cvarSettings[RSK_AMMO_DROPS] = CVarGetInteger("gRandomizeAmmoDrops", 0);
     cvarSettings[RSK_BOMBCHUS_IN_LOGIC] = CVarGetInteger("gRandomizeBombchusInLogic", 0);
     cvarSettings[RSK_SKIP_CHILD_ZELDA] = CVarGetInteger("gRandomizeSkipChildZelda", 0);
 
@@ -1897,7 +1897,6 @@ void RandomizerSettingsWindow::DrawElement() {
     static const char* randoShuffleBossEntrances[3] = { "Off", "Age Restricted", "Full" };
     static const char* randoShuffleInteriorsEntrances[3] = { "Off", "Simple", "All" };
     static const char* randoBombchusInLogic[2] = { "Off", "On" };
-    static const char* randoAmmoDrops[3] = { "On + Bombchu", "Off", "On" };
     static const char* randoHeartDropsAndRefills[4] = { "On", "No Drop", "No Refill", "Off" };
 
     // Shuffle Settings
@@ -1932,6 +1931,9 @@ void RandomizerSettingsWindow::DrawElement() {
     static const char* randoHintDistribution[4] = { "Useless", "Balanced", "Strong", "Very Strong" };
     static const char* randoStartingTime[2] = { "Day", "Night" };
     static const char* randoRandomTrapDamage[3] = { "Basic", "Advanced", "Off" };
+
+    // Additional Features
+    static const char* randoAmmoDrops[3] = { "On", "On + Bombchu", "Off" };
 
     // Item Pool Settings
     static const char* randoItemPool[4] = { "Plentiful", "Balanced", "Scarce", "Minimal" };
@@ -3371,10 +3373,14 @@ void RandomizerSettingsWindow::DrawElement() {
                 UIWidgets::PaddedSeparator();
 
                 // Enable Bombchu Drops
-                UIWidgets::EnhancementCheckbox("Enable Bombchu Drops", "gRandomizeEnableBombchuDrops");
+                ImGui::Text("%s", ctx->GetOption(RSK_AMMO_DROPS).GetName().c_str());
                 UIWidgets::InsertHelpHoverText(
-                    "Once you obtain bombchus for the first time, refills can be found in bushes and other places where bomb drops can normally spawn."
+                    "On - Ammo drops behave just like the vanilla game.\n"
+                    "On + Bombchus - Once you obtain bombchus for the first time, refills can be found in bushes "
+                    "and other places where bomb drops can normally spawn.\n"
+                    "Off - All ammo drops will be replaced by blue rupees, except for Deku sticks."
                 );
+                UIWidgets::EnhancementCombobox("gRandomizeAmmoDrops", randoAmmoDrops, RO_AMMO_DROPS_ON);
 
                 UIWidgets::PaddedSeparator();
 

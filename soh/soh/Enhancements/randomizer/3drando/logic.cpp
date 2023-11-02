@@ -538,7 +538,7 @@ namespace Logic {
     FoundBombchus   = (BombchuDrop || Bombchus || Bombchus5 || Bombchus10 || Bombchus20);
     CanPlayBowling  = (ctx->GetOption(RSK_BOMBCHUS_IN_LOGIC) && FoundBombchus) || (!ctx->GetOption(RSK_BOMBCHUS_IN_LOGIC) && BombBag);
     // TODO: Implement Ammo Drop Setting in place of bombchu drops
-    HasBombchus     = (BuyBombchus10 || BuyBombchus20 || (ctx->GetOption(RSK_ENABLE_BOMBCHU_DROPS).Is(RO_AMMO_DROPS_ON_PLUS_BOMBCHU) && FoundBombchus));
+    HasBombchus     = (BuyBombchus10 || BuyBombchus20 || (ctx->GetOption(RSK_AMMO_DROPS).Is(RO_AMMO_DROPS_ON_PLUS_BOMBCHU) && FoundBombchus));
 
     HasExplosives =  Bombs || (ctx->GetOption(RSK_BOMBCHUS_IN_LOGIC) && HasBombchus);
 

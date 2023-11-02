@@ -655,11 +655,17 @@ void DrawEnhancementsMenu() {
                 UIWidgets::PaddedEnhancementCheckbox("No Random Drops", "gNoRandomDrops", true, false);
                 UIWidgets::Tooltip("Disables random drops, except from the Goron Pot, Dampe, and bosses");
                 bool forceEnableBombchuDrops = IS_RANDO &&
-                    OTRGlobals::Instance->gRandomizer->GetRandoSettingValue(RSK_ENABLE_BOMBCHU_DROPS) == 1;
-                static const char* forceEnableBombchuDropsText =
-                    "This setting is forcefully enabled because a savefile\nwith \"Enable Bombchu Drops\" is loaded.";
+                    OTRGlobals::Instance->gRandomizer->GetRandoSettingValue(RSK_AMMO_DROPS) == 1;
+                bool forceDisableAmmoDrops = IS_RANDO &&
+                    OTRGlobals::Instance->gRandomizer->GetRandoSettingValue(RSK_AMMO_DROPS) == 2;
+                static const char* forceEnableBombchuDropsText = forceDisableAmmoDrops ?
+                    "This setting is forcefully enabled because a savefile\nwith \"Ammo Drops: On + Bombchu\" is loaded." :
+                    "This setting is forcefully disabled because a savefile\nwith \"Ammo Drops: Off\" is loaded.";
+                UIWidgets::CheckboxGraphics forceEnableBombchuDropsCheckboxGraphic = forceDisableAmmoDrops ?
+                    UIWidgets::CheckboxGraphics::Cross : UIWidgets::CheckboxGraphics::Checkmark;
                 UIWidgets::PaddedEnhancementCheckbox("Enable Bombchu Drops", "gBombchuDrops", true, false,
-                                                        forceEnableBombchuDrops, forceEnableBombchuDropsText, UIWidgets::CheckboxGraphics::Checkmark);
+                                                        (forceEnableBombchuDrops || forceDisableAmmoDrops), 
+                                                        forceEnableBombchuDropsText, forceEnableBombchuDropsCheckboxGraphic);
                 UIWidgets::Tooltip("Bombchus will sometimes drop in place of bombs");
                 UIWidgets::PaddedEnhancementCheckbox("Trees Drop Sticks", "gTreeStickDrops", true, false);
                 UIWidgets::Tooltip("Bonking into trees will have a chance to drop up to 3 sticks. Must already have obtained sticks.");

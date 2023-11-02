@@ -66,8 +66,8 @@ void Settings::CreateOptions() {
     mOptions[RSK_MIX_GROTTO_ENTRANCES] = Option::Bool("Mix Grottos");
     mOptions[RSK_DECOUPLED_ENTRANCES] = Option::Bool("Decouple Entrances");
     mOptions[RSK_BOMBCHUS_IN_LOGIC] = Option::Bool("Bombchus in Logic");
-    mOptions[RSK_ENABLE_BOMBCHU_DROPS] = Option::U8("Bombchu Drops", {"No", "Yes"});
-    // TODO: AmmoDrops and/or HeartDropRefill, combine with/separate Ammo Drops from Bombchu Drops?
+    mOptions[RSK_AMMO_DROPS] = Option::U8("Ammo Drops", {"On", "On + Bombchu", "Off"});
+    // TODO: HeartDropRefill?
     mOptions[RSK_TRIFORCE_HUNT] = Option::Bool("Triforce Hunt");
     mOptions[RSK_TRIFORCE_HUNT_PIECES_TOTAL] = Option::U8("Triforce Hunt Total Pieces", {NumOpts(0, 100)});
     mOptions[RSK_TRIFORCE_HUNT_PIECES_REQUIRED] = Option::U8("Triforce Hunt Required Pieces", {NumOpts(0, 100)});
@@ -572,7 +572,7 @@ void Settings::CreateOptions() {
         &mOptions[RSK_MIX_GROTTO_ENTRANCES],
         &mOptions[RSK_DECOUPLED_ENTRANCES],
         &mOptions[RSK_BOMBCHUS_IN_LOGIC],
-        &mOptions[RSK_ENABLE_BOMBCHU_DROPS],
+        &mOptions[RSK_AMMO_DROPS],
         &mOptions[RSK_TRIFORCE_HUNT],
         &mOptions[RSK_TRIFORCE_HUNT_PIECES_TOTAL],
         &mOptions[RSK_TRIFORCE_HUNT_PIECES_REQUIRED],
@@ -857,7 +857,7 @@ void Settings::CreateOptions() {
         { "Shuffle Dungeon Items:Ganon's Castle", RSK_KEYRINGS_GANONS_CASTLE },
         { "World Settings:Starting Age", RSK_STARTING_AGE },
         // TODO: Ammo Drop settings
-        { "World Settings:Bombchu Drops", RSK_ENABLE_BOMBCHU_DROPS },
+        { "World Settings:Bombchu Drops", RSK_AMMO_DROPS },
         { "World Settings:Bombchus in Logic", RSK_BOMBCHUS_IN_LOGIC },
         { "World Settings:Shuffle Entrances", RSK_SHUFFLE_ENTRANCES },
         { "World Settings:Dungeon Entrances", RSK_SHUFFLE_DUNGEON_ENTRANCES },
@@ -1508,7 +1508,7 @@ void Settings::ParseJson(nlohmann::json spoilerFileJson) {
                     }
                     break;
                 // Uses Ammo Drops option for now. "Off" not yet implemented
-                case RSK_ENABLE_BOMBCHU_DROPS:
+                case RSK_AMMO_DROPS:
                     if (it.value() == "On") {
                         mOptions[index].SetSelectedIndex(RO_AMMO_DROPS_ON);
                     } else if (it.value() == "On + Bombchu") {

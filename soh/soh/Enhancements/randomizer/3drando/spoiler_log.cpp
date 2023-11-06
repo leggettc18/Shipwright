@@ -3,7 +3,7 @@
 #include "../dungeon.h"
 #include "../static_data.h"
 #include "../context.h"
-#include "entrance.hpp"
+#include "../entrance.h"
 #include "random.hpp"
 #include "../trial.h"
 #include "tinyxml2.h"
@@ -32,6 +32,7 @@
 #include <Context.h>
 
 using json = nlohmann::ordered_json;
+using namespace Rando;
 
 json jsonData;
 std::map<RandomizerHintTextKey, Rando::ItemLocation*> hintedLocations;
@@ -48,7 +49,7 @@ static SpoilerData spoilerData;
 
 void GenerateHash() {
     auto ctx = Rando::Context::GetInstance();
-    std::string hash = ctx->GetSettings().GetHash();
+    std::string hash = ctx->GetSettings()->GetHash();
     // adds leading 0s to the hash string if it has less than 10 digits.
     while (hash.length() < 10) {
         hash = "0" + hash;
@@ -359,7 +360,7 @@ static void WriteShuffledEntrance(std::string sphereString, Entrance* entrance) 
 static void WriteSettings(const bool printAll = false) {
     // auto parentNode = spoilerLog.NewElement("settings");
     auto ctx = Rando::Context::GetInstance();
-    auto allOptionGroups = ctx->GetSettings().GetOptionGroups();
+    auto allOptionGroups = ctx->GetSettings()->GetOptionGroups();
     for (const Rando::OptionGroup& optionGroup : allOptionGroups) {
         if (optionGroup.GetName() == "Timesaver Settings") {
             for (const Rando::Option* option : optionGroup.GetOptions()) {
@@ -395,8 +396,8 @@ static void WriteExcludedLocations() {
   // auto parentNode = spoilerLog.NewElement("excluded-locations");
   auto ctx = Rando::Context::GetInstance();
 
-  for (size_t i = 1; i < ctx->GetSettings().GetExcludeLocationsOptions().size(); i++) {
-    for (const auto& location : ctx->GetSettings().GetExcludeLocationsOptions()[i]) {
+  for (size_t i = 1; i < ctx->GetSettings()->GetExcludeLocationsOptions().size(); i++) {
+    for (const auto& location : ctx->GetSettings()->GetExcludeLocationsOptions()[i]) {
       if (location->GetSelectedOptionIndex() == RO_LOCATION_INCLUDE) {
         continue;
       }
@@ -417,7 +418,7 @@ static void WriteExcludedLocations() {
 // Writes the starting inventory to the spoiler log, if there is any.
 static void WriteStartingInventory() {
     auto ctx = Rando::Context::GetInstance();
-    const Rando::OptionGroup& optionGroup = ctx->GetSettings().GetOptionGroup(RSG_STARTING_INVENTORY);
+    const Rando::OptionGroup& optionGroup = ctx->GetSettings()->GetOptionGroup(RSG_STARTING_INVENTORY);
     for (const Rando::OptionGroup* subGroup : optionGroup.GetSubGroups()) {
         if (subGroup->GetContainsType() == Rando::OptionGroupType::DEFAULT) {
             for (const Rando::Option* option : subGroup->GetOptions()) {
@@ -432,7 +433,7 @@ static void WriteEnabledTricks(tinyxml2::XMLDocument& spoilerLog) {
   //auto parentNode = spoilerLog.NewElement("enabled-tricks");
   auto ctx = Rando::Context::GetInstance();
 
-  for (const auto& setting : ctx->GetSettings().GetOptionGroup(RSG_TRICKS).GetOptions()) {
+  for (const auto& setting : ctx->GetSettings()->GetOptionGroup(RSG_TRICKS).GetOptions()) {
     if (setting->GetSelectedOptionIndex() != RO_GENERIC_ON/* || !setting->IsCategory(OptionCategory::Setting)*/) {
       continue;
     }
@@ -527,13 +528,14 @@ static void WritePlaythrough() {
 
 //Write the randomized entrance playthrough to the spoiler log, if applicable
 static void WriteShuffledEntrances() {
-  for (uint32_t i = 0; i < playthroughEntrances.size(); ++i) {
+  auto ctx = Rando::Context::GetInstance();
+  for (uint32_t i = 0; i < ctx->GetEntranceShuffler()->playthroughEntrances.size(); ++i) {
     auto sphereNum = std::to_string(i);
     std::string sphereString = "sphere ";
     if (i < 10) sphereString += "0";
     sphereString += sphereNum;
-    for (Entrance* entrance : playthroughEntrances[i]) {
-      WriteShuffledEntrance(sphereString, entrance);
+    for (Entrance* entrance : ctx->GetEntranceShuffler()->playthroughEntrances[i]) {
+        WriteShuffledEntrance(sphereString, entrance);
     }
   }
 }
@@ -552,53 +554,36 @@ static void WriteWayOfTheHeroLocation(tinyxml2::XMLDocument& spoilerLog) {
 }
 
 std::string AutoFormatHintTextString(std::string unformattedHintTextString) {
-  std::string textStr = unformattedHintTextString;
+    std::string textStr = unformattedHintTextString;
 
-  // RANDOTODO: don't just make manual exceptions
-  bool needsAutomaicNewlines = true;
-  if (textStr == "Erreur 0x69a504:&Traduction manquante^C'est de la faute à Purple Hato!&J'vous jure!" ||
-      textStr == "Mon très cher @:&Viens vite au château, je t'ai préparé&un délicieux gâteau...^À bientôt, Princesse Zelda" ||
-      textStr == "What about Zelda makes you think&she'd be a better ruler than I?^I saved Lon Lon Ranch,&fed the hungry,&and my castle floats." ||
-      textStr == "Many tricks are up my sleeve,&to save yourself&you'd better leave!" ||
-      textStr == "I've learned this spell,&it's really neat,&I'll keep it later&for your treat!" ||
-      textStr == "Sale petit garnement,&tu fais erreur!&C'est maintenant que marque&ta dernière heure!" ||
-      textStr == "Gamin, ton destin achève,&sous mon sort tu périras!&Cette partie ne fut pas brève,&et cette mort, tu subiras!" ||
-      textStr == "Oh! It's @.&I was expecting someone called Sheik.&Do you know what happened to them?" ||
-      textStr == "Ah, c'est @.&J'attendais un certain Sheik.&Tu sais ce qui lui est arrivé?" ||
-      textStr == "They say \"Forgive me, but-^Your script will not be used.&....After all...^The one writing the rest of the script...&will be me.\"") {
-    needsAutomaicNewlines = false;
-  }
-
-  if (needsAutomaicNewlines) {
-    //insert newlines either manually or when encountering a '&'
+    // insert newlines either manually or when encountering a '&'
     constexpr size_t lineLength = 34;
     size_t lastNewline = 0;
     while (lastNewline + lineLength < textStr.length()) {
-      size_t carrot     = textStr.find('^', lastNewline);
-      size_t ampersand  = textStr.find('&', lastNewline);
-      size_t lastSpace  = textStr.rfind(' ', lastNewline + lineLength);
-      size_t lastPeriod = textStr.rfind('.', lastNewline + lineLength);
-      //replace '&' first if it's within the newline range
-      if (ampersand < lastNewline + lineLength) {
-        lastNewline = ampersand + 1;
-      //or move the lastNewline cursor to the next line if a '^' is encountered
-      } else if (carrot < lastNewline + lineLength) {
-        lastNewline = carrot + 1;
-      //some lines need to be split but don't have spaces, look for periods instead
-      } else if (lastSpace == std::string::npos) {
-        textStr.replace(lastPeriod, 1, ".&");
-        lastNewline = lastPeriod + 2;
-      } else {
-        textStr.replace(lastSpace, 1, "&");
-        lastNewline = lastSpace + 1;
-      }
+        size_t carrot = textStr.find('^', lastNewline);
+        size_t ampersand = textStr.find('&', lastNewline);
+        size_t lastSpace = textStr.rfind(' ', lastNewline + lineLength);
+        size_t lastPeriod = textStr.rfind('.', lastNewline + lineLength);
+        // replace '&' first if it's within the newline range
+        if (ampersand < lastNewline + lineLength) {
+            lastNewline = ampersand + 1;
+            // or move the lastNewline cursor to the next line if a '^' is encountered
+        } else if (carrot < lastNewline + lineLength) {
+            lastNewline = carrot + 1;
+            // some lines need to be split but don't have spaces, look for periods instead
+        } else if (lastSpace == std::string::npos) {
+            textStr.replace(lastPeriod, 1, ".&");
+            lastNewline = lastPeriod + 2;
+        } else {
+            textStr.replace(lastSpace, 1, "&");
+            lastNewline = lastSpace + 1;
+        }
     }
-  }
 
-  // todo add colors (see `AddColorsAndFormat` in `custom_messages.cpp`)
-  textStr.erase(std::remove(textStr.begin(), textStr.end(), '#'), textStr.end());
+    // todo add colors (see `AddColorsAndFormat` in `custom_messages.cpp`)
+    textStr.erase(std::remove(textStr.begin(), textStr.end(), '#'), textStr.end());
 
-  return textStr;
+    return textStr;
 }
 
 Rando::ItemLocation* GetItemLocation(RandomizerGet item) {
@@ -610,6 +595,7 @@ Rando::ItemLocation* GetItemLocation(RandomizerGet item) {
 
 // Writes the hints to the spoiler log, if they are enabled.
 static void WriteHints(int language) {
+    auto ctx = Rando::Context::GetInstance();
     std::string unformattedGanonText;
     std::string unformattedGanonHintText;
     std::string unformattedDampesText;
@@ -627,7 +613,7 @@ static void WriteHints(int language) {
             unformattedSheikText = GetSheikHintText().GetEnglish();
             unformattedSariaText = GetSariaHintText().GetEnglish();
 
-            if (Settings::ShuffleWarpSongs){
+            if (ctx->GetOption(RSK_SHUFFLE_WARP_SONGS)){
               jsonData["warpMinuetText"] = GetWarpMinuetText().GetEnglish();
               jsonData["warpBoleroText"] = GetWarpBoleroText().GetEnglish();
               jsonData["warpSerenadeText"] = GetWarpSerenadeText().GetEnglish();
@@ -646,7 +632,7 @@ static void WriteHints(int language) {
             unformattedSheikText = GetSheikHintText().GetFrench();
             unformattedSariaText = GetSariaHintText().GetFrench();
 
-            if (Settings::ShuffleWarpSongs){
+            if (ctx->GetOption(RSK_SHUFFLE_WARP_SONGS)){
               jsonData["warpMinuetText"] = GetWarpMinuetText().GetFrench();
               jsonData["warpBoleroText"] = GetWarpBoleroText().GetFrench();
               jsonData["warpSerenadeText"] = GetWarpSerenadeText().GetFrench();
@@ -699,31 +685,33 @@ static void WriteHints(int language) {
     std::string sariaText = AutoFormatHintTextString(unformattedSariaText);
 
     jsonData["ganonText"] = ganonText;
-    if (Settings::LightArrowHintText){
+    if (ctx->GetOption(RSK_LIGHT_ARROWS_HINT)){
       jsonData["ganonHintText"] = ganonHintText;
       jsonData["lightArrowHintLoc"] = GetLightArrowHintLoc();
-      jsonData["masterSwordHintLoc"] = GetMasterSwordHintLoc();
-      if (!Settings::GanonsTrialsCount.Is(0)){
-        jsonData["sheikText"] = sheikText;
+      jsonData["lightArrowRegion"] = ctx->GetHint(RH_GANONDORF_HINT)->GetHintedRegion();
+        if (!ctx->GetOption(RSK_TRIAL_COUNT).Is(0)) {
+          jsonData["sheikText"] = sheikText;
       }
     }
-    if (Settings::DampeHintText){
+    if (ctx->GetOption(RSK_DAMPES_DIARY_HINT)){
       jsonData["dampeText"] = dampesText;
       jsonData["dampeHintLoc"] = GetDampeHintLoc();
+      jsonData["dampeRegion"] = ctx->GetHint(RH_DAMPES_DIARY)->GetHintedRegion();
     }
-    if (Settings::GregHintText){
+    if (ctx->GetOption(RSK_GREG_HINT)){
       jsonData["gregText"] = gregText;
       jsonData["gregLoc"] = GetGregHintLoc();
+      jsonData["gregRegion"] = ctx->GetHint(RH_GREG_RUPEE)->GetHintedRegion();
     }
-    if (Settings::SariaHintText){
+    if (ctx->GetOption(RSK_SARIA_HINT)){
       jsonData["sariaText"] = sariaText;
       jsonData["sariaHintLoc"] = GetSariaHintLoc();
+      jsonData["sariaRegion"] = ctx->GetHint(RH_SARIA)->GetHintedRegion();
     }
 
-    if (Settings::GossipStoneHints.Is(HINTS_NO_HINTS)) {
+    if (ctx->GetOption(RSK_GOSSIP_STONE_HINTS).Is(RO_GOSSIP_STONES_NONE)) {
         return;
     }
-    auto ctx = Rando::Context::GetInstance();
     for (const RandomizerCheck key : Rando::StaticData::gossipStoneLocations) {
         Rando::Hint* hint = ctx->GetHint((RandomizerHintKey)(key - RC_COLOSSUS_GOSSIP_STONE + 1));
         Rando::ItemLocation* hintedLocation = ctx->GetItemLocation(hint->GetHintedLocation());
@@ -823,8 +811,8 @@ const char* SpoilerLog_Write(int language) {
     jsonData.clear();
 
     jsonData["version"] = (char*) gBuildVersion;
-    jsonData["seed"] = Settings::seedString;
-    jsonData["finalSeed"] = Settings::seed;
+    jsonData["seed"] = ctx->GetSettings()->GetSeedString();
+    jsonData["finalSeed"] = ctx->GetSettings()->GetSeed();
 
     // Write Hash
     int index = 0;
@@ -896,8 +884,9 @@ bool PlacementLog_Write() {
     auto rootNode = placementLog.NewElement("placement-log");
     placementLog.InsertEndChild(rootNode);
 
-    rootNode->SetAttribute("version", Settings::version.c_str());
-    rootNode->SetAttribute("seed", Settings::seed);
+    // rootNode->SetAttribute("version", Settings::version.c_str());
+    // rootNode->SetAttribute("seed", Settings::seed);
+    // TODO: Do we even use this?
 
     // WriteSettings(placementLog, true); // Include hidden settings.
     // WriteExcludedLocations(placementLog);

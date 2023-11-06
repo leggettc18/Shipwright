@@ -1,7 +1,10 @@
 #include "SaveManager.h"
 #include "OTRGlobals.h"
 #include "Enhancements/game-interactor/GameInteractor.h"
-#include "soh/util.h"
+#include "Enhancements/randomizer/context.h"
+#include "Enhancements/randomizer/entrance.h"
+#include "Enhancements/randomizer/dungeon.h"
+#include "Enhancements/randomizer/trial.h"
 
 #include "z64.h"
 #include "functions.h"
@@ -61,7 +64,8 @@ SaveManager::SaveManager() {
 
     AddLoadFunction("randomizer", 1, LoadRandomizerVersion1);
     AddLoadFunction("randomizer", 2, LoadRandomizerVersion2);
-    AddSaveFunction("randomizer", 2, SaveRandomizer, true, SECTION_PARENT_NONE);
+    AddLoadFunction("randomizer", 3, LoadRandomizerVersion3);
+    AddSaveFunction("randomizer", 3, SaveRandomizer, true, SECTION_PARENT_NONE);
 
     AddInitFunction(InitFileImpl);
 
@@ -92,18 +96,23 @@ SaveManager::SaveManager() {
 }
 
 void SaveManager::LoadRandomizerVersion1() {
-    for (int i = 0; i < ARRAY_COUNT(gSaveContext.itemLocations); i++) {
+    auto randoContext = Rando::Context::GetInstance();
+    RandomizerCheck location = RC_UNKNOWN_CHECK;
+    for (int i = 0; i < RC_MAX; i++) {
+        SaveManager::Instance->LoadData("check" + std::to_string(i), location);
         SaveManager::Instance->LoadStruct("get" + std::to_string(i), [&]() {
-            SaveManager::Instance->LoadData("rgID", gSaveContext.itemLocations[i].get.rgID);
-            SaveManager::Instance->LoadData("fakeRgID", gSaveContext.itemLocations[i].get.fakeRgID);
-            SaveManager::Instance->LoadCharArray("trickName", gSaveContext.itemLocations[i].get.trickName,
-                                                 MAX_TRICK_NAME_SIZE);
+            SaveManager::Instance->LoadData("rgID", randoContext->GetItemLocation(location)->RefPlacedItem());
+            if (randoContext->GetItemLocation(location)->GetPlacedRandomizerGet() == RG_ICE_TRAP) {
+                randoContext->overrides[location].SetLocation(location);
+                SaveManager::Instance->LoadData("fakeRgID", randoContext->overrides[location].RefLooksLike());
+                SaveManager::Instance->LoadData("trickName", randoContext->overrides[location].GetTrickName().english);
+                SaveManager::Instance->LoadData("trickName", randoContext->overrides[location].GetTrickName().french);
+            }
         });
-        SaveManager::Instance->LoadData("check" + std::to_string(i), gSaveContext.itemLocations[i].check);
     }
 
-    for (int i = 0; i < ARRAY_COUNT(gSaveContext.seedIcons); i++) {
-        SaveManager::Instance->LoadData("seed" + std::to_string(i), gSaveContext.seedIcons[i]);
+    for (int i = 0; i < randoContext->hashIconIndexes.size(); i++) {
+        SaveManager::Instance->LoadData("seed" + std::to_string(i), randoContext->hashIconIndexes[i]);
     }
 
     for (int i = 0; i < RSK_MAX; i++) {
@@ -113,28 +122,39 @@ void SaveManager::LoadRandomizerVersion1() {
         randoContext->GetOption(RandomizerSettingKey(key)).SetSelectedIndex(value);
     }
 
-    for (int i = 0; i < ARRAY_COUNT(gSaveContext.hintLocations); i++) {
-        SaveManager::Instance->LoadData("hc" + std::to_string(i), gSaveContext.hintLocations[i].check);
-        for (int j = 0; j < ARRAY_COUNT(gSaveContext.hintLocations[i].hintText); j++) {
-            SaveManager::Instance->LoadData("ht" + std::to_string(i) + "-" + std::to_string(j), gSaveContext.hintLocations[i].hintText[j]);
+    for (int i = 0; i < 50; i++) {
+        RandomizerCheck check;
+        char hintText[200];
+        SaveManager::Instance->LoadData("hc" + std::to_string(i), check);
+        for (int j = 0; j < ARRAY_COUNT(hintText); j++) {
+            SaveManager::Instance->LoadData("ht" + std::to_string(i) + "-" + std::to_string(j), hintText[j]);
         }
+        randoContext->AddHint(RandomizerHintKey(check - RC_COLOSSUS_GOSSIP_STONE + 1), Text(hintText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
     }
 
-    for (int i = 0; i < ARRAY_COUNT(gSaveContext.childAltarText); i++) {
-        SaveManager::Instance->LoadData("cat" + std::to_string(i), gSaveContext.childAltarText[i]);
+    char childAltarText[250];
+    for (int i = 0; i < ARRAY_COUNT(childAltarText); i++) {
+        SaveManager::Instance->LoadData("cat" + std::to_string(i), childAltarText[i]);
     }
+    randoContext->AddHint(RH_ALTAR_CHILD, Text(childAltarText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
 
-    for (int i = 0; i < ARRAY_COUNT(gSaveContext.adultAltarText); i++) {
-        SaveManager::Instance->LoadData("aat" + std::to_string(i), gSaveContext.adultAltarText[i]);
+    char adultAltarText[750];
+    for (int i = 0; i < ARRAY_COUNT(adultAltarText); i++) {
+        SaveManager::Instance->LoadData("aat" + std::to_string(i), adultAltarText[i]);
     }
+    randoContext->AddHint(RH_ALTAR_ADULT, Text(adultAltarText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
 
-    for (int i = 0; i < ARRAY_COUNT(gSaveContext.ganonHintText); i++) {
-        SaveManager::Instance->LoadData("ght" + std::to_string(i), gSaveContext.ganonHintText[i]);
+    char ganonHintText[150];
+    for (int i = 0; i < ARRAY_COUNT(ganonHintText); i++) {
+        SaveManager::Instance->LoadData("ght" + std::to_string(i), ganonHintText[i]);
     }
+    randoContext->AddHint(RH_GANONDORF_HINT, Text(ganonHintText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
 
-    for (int i = 0; i < ARRAY_COUNT(gSaveContext.ganonText); i++) {
-        SaveManager::Instance->LoadData("gt" + std::to_string(i), gSaveContext.ganonText[i]);
+    char ganonText[250];
+    for (int i = 0; i < ARRAY_COUNT(ganonText); i++) {
+        SaveManager::Instance->LoadData("gt" + std::to_string(i), ganonText[i]);
     }
+    randoContext->AddHint(RH_GANONDORF_NOHINT, Text(ganonText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
 
     SaveManager::Instance->LoadData("adultTradeItems", gSaveContext.adultTradeItems);
 
@@ -142,14 +162,12 @@ void SaveManager::LoadRandomizerVersion1() {
 
     SaveManager::Instance->LoadData("pendingIceTrapCount", gSaveContext.pendingIceTrapCount);
 
-    std::shared_ptr<Randomizer> randomizer = OTRGlobals::Instance->gRandomizer;
 
-    randomizer->LoadRandomizerSettings("");
     size_t merchantPricesSize = 0;
-    if (randomizer->GetRandoSettingValue(RSK_SHUFFLE_SCRUBS) != RO_SCRUBS_OFF) {
+    if (randoContext->GetOption(RSK_SHUFFLE_SCRUBS).Is(RO_SCRUBS_OFF)) {
         merchantPricesSize += NUM_SCRUBS;
     }
-    if (randomizer->GetRandoSettingValue(RSK_SHOPSANITY) != RO_SHOPSANITY_OFF) {
+    if (randoContext->GetOption(RSK_SHOPSANITY).Is(RO_SHOPSANITY_OFF)) {
         merchantPricesSize += NUM_SHOP_ITEMS;
     }
 
@@ -159,40 +177,48 @@ void SaveManager::LoadRandomizerVersion1() {
             SaveManager::Instance->LoadData("check", rc);
             uint32_t price;
             SaveManager::Instance->LoadData("price", price);
-            randomizer->merchantPrices[rc] = price;
+            randoContext->GetItemLocation(rc)->SetCustomPrice(price);
         });
     });
 }
 
 void SaveManager::LoadRandomizerVersion2() {
+    auto randoContext = Rando::Context::GetInstance();
     SaveManager::Instance->LoadArray("itemLocations", RC_MAX, [&](size_t i) {
-        gSaveContext.itemLocations[i].check = RandomizerCheck(i);
         SaveManager::Instance->LoadStruct("", [&]() {
-            SaveManager::Instance->LoadData("rgID", gSaveContext.itemLocations[i].get.rgID);
-            SaveManager::Instance->LoadData("fakeRgID", gSaveContext.itemLocations[i].get.fakeRgID);
-            SaveManager::Instance->LoadCharArray("trickName", gSaveContext.itemLocations[i].get.trickName,
-                                                 MAX_TRICK_NAME_SIZE);
+            SaveManager::Instance->LoadData("rgID", randoContext->GetItemLocation(i)->RefPlacedItem());
+            RandomizerGet rg = RG_NONE;
+            SaveManager::Instance->LoadData("fakeRgID", rg, RG_NONE);
+            if (rg != RG_NONE) {
+                randoContext->overrides[static_cast<RandomizerCheck>(i)] = Rando::ItemOverride(static_cast<RandomizerCheck>(i), rg);
+                SaveManager::Instance->LoadData("trickName", randoContext->overrides[static_cast<RandomizerCheck>(i)].GetTrickName().english);
+                SaveManager::Instance->LoadData("trickName", randoContext->overrides[static_cast<RandomizerCheck>(i)].GetTrickName().french);
+            }
         });
     });
 
-    SaveManager::Instance->LoadArray("entrances", ARRAY_COUNT(gSaveContext.entranceOverrides), [&](size_t i) {
+    auto entranceCtx = randoContext->GetEntranceShuffler();
+    SaveManager::Instance->LoadArray("entrances", ARRAY_COUNT(entranceCtx->entranceOverrides), [&](size_t i) {
         SaveManager::Instance->LoadStruct("", [&]() {
-            SaveManager::Instance->LoadData("index", gSaveContext.entranceOverrides[i].index);
-            SaveManager::Instance->LoadData("destination", gSaveContext.entranceOverrides[i].destination);
-            SaveManager::Instance->LoadData("blueWarp", gSaveContext.entranceOverrides[i].blueWarp);
-            SaveManager::Instance->LoadData("override", gSaveContext.entranceOverrides[i].override);
-            SaveManager::Instance->LoadData("overrideDestination", gSaveContext.entranceOverrides[i].overrideDestination);
+            SaveManager::Instance->LoadData("index", entranceCtx->entranceOverrides[i].index);
+            SaveManager::Instance->LoadData("destination", entranceCtx->entranceOverrides[i].destination);
+            SaveManager::Instance->LoadData("blueWarp", entranceCtx->entranceOverrides[i].blueWarp);
+            SaveManager::Instance->LoadData("override", entranceCtx->entranceOverrides[i].override);
+            SaveManager::Instance->LoadData("overrideDestination", entranceCtx->entranceOverrides[i].overrideDestination);
         });
     });
 
-    SaveManager::Instance->LoadArray("seed", ARRAY_COUNT(gSaveContext.seedIcons), [&](size_t i) {
-        SaveManager::Instance->LoadData("", gSaveContext.seedIcons[i]);
+    SaveManager::Instance->LoadArray("seed", randoContext->hashIconIndexes.size(), [&](size_t i) {
+        SaveManager::Instance->LoadData("", randoContext->hashIconIndexes[i]);
     });
 
     std::string inputSeed;
-    SaveManager::Instance->LoadCharArray("inputSeed", gSaveContext.inputSeed, ARRAY_COUNT(gSaveContext.inputSeed));
+    SaveManager::Instance->LoadData("inputSeed", inputSeed);
+    randoContext->GetSettings()->SetSeedString(inputSeed);
 
-    SaveManager::Instance->LoadData("finalSeed", gSaveContext.finalSeed);
+    uint32_t finalSeed;
+    SaveManager::Instance->LoadData("finalSeed", finalSeed);
+    randoContext->GetSettings()->SetSeed(finalSeed);
 
     SaveManager::Instance->LoadArray("randoSettings", RSK_MAX, [&](size_t i) {
         int value = 0;
@@ -200,44 +226,58 @@ void SaveManager::LoadRandomizerVersion2() {
         randoContext->GetOption(RandomizerSettingKey(i)).SetSelectedIndex(value);
     });
 
-    SaveManager::Instance->LoadArray("hintLocations", ARRAY_COUNT(gSaveContext.hintLocations), [&](size_t i) {
+    SaveManager::Instance->LoadArray("hintLocations", RH_ZR_OPEN_GROTTO_GOSSIP_STONE + 1, [&](size_t i) {
         SaveManager::Instance->LoadStruct("", [&]() {
-            SaveManager::Instance->LoadData("check", gSaveContext.hintLocations[i].check);
-            SaveManager::Instance->LoadCharArray("hintText", gSaveContext.hintLocations[i].hintText,
-                                                 ARRAY_COUNT(gSaveContext.hintLocations[i].hintText));
+            RandomizerCheck rc = RC_UNKNOWN_CHECK;
+            SaveManager::Instance->LoadData("check", rc);
+            std::string hintText;
+            SaveManager::Instance->LoadData("hintText", hintText);
+            randoContext->AddHint(RandomizerHintKey(rc - RC_COLOSSUS_GOSSIP_STONE + 1), Text(hintText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
         });
     });
 
-    SaveManager::Instance->LoadCharArray("childAltarText", gSaveContext.childAltarText,
-                                         ARRAY_COUNT(gSaveContext.childAltarText));
-    SaveManager::Instance->LoadCharArray("adultAltarText", gSaveContext.adultAltarText,
-                                         ARRAY_COUNT(gSaveContext.adultAltarText));
-
-    SaveManager::Instance->LoadCharArray("ganonHintText", gSaveContext.ganonHintText,
-                                         ARRAY_COUNT(gSaveContext.ganonHintText));
-    SaveManager::Instance->LoadCharArray("ganonText", gSaveContext.ganonText, ARRAY_COUNT(gSaveContext.ganonText));
-
-    SaveManager::Instance->LoadCharArray("dampeText", gSaveContext.dampeText, ARRAY_COUNT(gSaveContext.dampeText));
-
-    SaveManager::Instance->LoadCharArray("gregHintText", gSaveContext.gregHintText,
-                                         ARRAY_COUNT(gSaveContext.gregHintText));
-
-    SaveManager::Instance->LoadCharArray("sheikText", gSaveContext.sheikText, ARRAY_COUNT(gSaveContext.sheikText));
-
-    SaveManager::Instance->LoadCharArray("sariaText", gSaveContext.sariaText, ARRAY_COUNT(gSaveContext.sariaText));
-
-    SaveManager::Instance->LoadCharArray("warpMinuetText", gSaveContext.warpMinuetText,
-                                         ARRAY_COUNT(gSaveContext.warpMinuetText));
-    SaveManager::Instance->LoadCharArray("warpBoleroText", gSaveContext.warpBoleroText,
-                                         ARRAY_COUNT(gSaveContext.warpBoleroText));
-    SaveManager::Instance->LoadCharArray("warpSerenadeText", gSaveContext.warpSerenadeText,
-                                         ARRAY_COUNT(gSaveContext.warpSerenadeText));
-    SaveManager::Instance->LoadCharArray("warpRequiemText", gSaveContext.warpRequiemText,
-                                         ARRAY_COUNT(gSaveContext.warpRequiemText));
-    SaveManager::Instance->LoadCharArray("warpNocturneText", gSaveContext.warpNocturneText,
-                                         ARRAY_COUNT(gSaveContext.warpNocturneText));
-    SaveManager::Instance->LoadCharArray("warpPreludeText", gSaveContext.warpPreludeText,
-                                         ARRAY_COUNT(gSaveContext.warpPreludeText));
+    std::string childAltarText;
+    SaveManager::Instance->LoadData("childAltarText", childAltarText);
+    randoContext->AddHint(RH_ALTAR_CHILD, Text(childAltarText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
+    std::string adultAltarText;
+    SaveManager::Instance->LoadData("adultAltarText", adultAltarText);
+    randoContext->AddHint(RH_ALTAR_ADULT, Text(adultAltarText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
+    std::string ganonHintText;
+    SaveManager::Instance->LoadData("ganonHintText", ganonHintText);
+    randoContext->AddHint(RH_GANONDORF_HINT, Text(ganonHintText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
+    std::string ganonText;
+    SaveManager::Instance->LoadData("ganonText", ganonText);
+    randoContext->AddHint(RH_GANONDORF_NOHINT, Text(ganonText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
+    std::string dampeText;
+    SaveManager::Instance->LoadData("dampeText", dampeText);
+    randoContext->AddHint(RH_DAMPES_DIARY, Text(dampeText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
+    std::string gregHintText;
+    SaveManager::Instance->LoadData("gregHintText", gregHintText);
+    randoContext->AddHint(RH_GREG_RUPEE, Text(gregHintText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
+    std::string sheikText;
+    SaveManager::Instance->LoadData("sheikText", sheikText);
+    randoContext->AddHint(RH_SHEIK_LIGHT_ARROWS, Text(sheikText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
+    std::string sariaText;
+    SaveManager::Instance->LoadData("sariaText", sariaText);
+    randoContext->AddHint(RH_SARIA, Text(sariaText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text());
+    std::string warpMinuetText;
+    SaveManager::Instance->LoadData("warpMinuetText", warpMinuetText);
+    randoContext->AddHint(RH_MINUET_WARP_LOC, Text(warpMinuetText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text(warpMinuetText));
+    std::string warpBoleroText;
+    SaveManager::Instance->LoadData("warpBoleroText", warpBoleroText);
+    randoContext->AddHint(RH_BOLERO_WARP_LOC, Text(warpBoleroText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text(warpBoleroText));
+    std::string warpSerenadeText;
+    SaveManager::Instance->LoadData("warpSerenadeText", warpSerenadeText);
+    randoContext->AddHint(RH_SERENADE_WARP_LOC, Text(warpSerenadeText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text(warpSerenadeText));
+    std::string warpRequiemText;
+    SaveManager::Instance->LoadData("warpRequiemText", warpRequiemText);
+    randoContext->AddHint(RH_REQUIEM_WARP_LOC, Text(warpRequiemText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text(warpRequiemText));
+    std::string warpNocturneText;
+    SaveManager::Instance->LoadData("warpNocturneText", warpNocturneText);
+    randoContext->AddHint(RH_NOCTURNE_WARP_LOC, Text(warpNocturneText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text(warpNocturneText));
+    std::string warpPreludeText;
+    SaveManager::Instance->LoadData("warpPreludeText", warpPreludeText);
+    randoContext->AddHint(RH_PRELUDE_WARP_LOC, Text(warpPreludeText), RC_UNKNOWN_CHECK, HINT_TYPE_STATIC, Text(warpPreludeText));
 
     SaveManager::Instance->LoadData("adultTradeItems", gSaveContext.adultTradeItems);
 
@@ -246,8 +286,6 @@ void SaveManager::LoadRandomizerVersion2() {
     SaveManager::Instance->LoadData("pendingIceTrapCount", gSaveContext.pendingIceTrapCount);
 
     std::shared_ptr<Randomizer> randomizer = OTRGlobals::Instance->gRandomizer;
-
-    randomizer->LoadRandomizerSettings("");
 
     size_t merchantPricesSize = 0;
     SaveManager::Instance->LoadData("merchantPricesSize", merchantPricesSize);
@@ -258,105 +296,214 @@ void SaveManager::LoadRandomizerVersion2() {
             SaveManager::Instance->LoadData("check", rc);
             uint32_t price;
             SaveManager::Instance->LoadData("price", price);
-            randomizer->merchantPrices[rc] = price;
+            randoContext->GetItemLocation(rc)->SetCustomPrice(price);
         });
     });
 
-    SaveManager::Instance->LoadData("masterQuestDungeonCount", gSaveContext.mqDungeonCount, (uint8_t)0);
+    size_t mqDungeonCount;
+    SaveManager::Instance->LoadData("masterQuestDungeonCount", mqDungeonCount, (size_t)0);
 
-    OTRGlobals::Instance->gRandomizer->masterQuestDungeons.clear();
-    SaveManager::Instance->LoadArray("masterQuestDungeons", gSaveContext.mqDungeonCount, [&](size_t i) {
+    randoContext->GetDungeons()->ClearAllMQ();
+    SaveManager::Instance->LoadArray("masterQuestDungeons", mqDungeonCount, [&](size_t i) {
         uint16_t scene;
         SaveManager::Instance->LoadData("", scene);
-        randomizer->masterQuestDungeons.emplace(scene);
+        randoContext->GetDungeons()->GetDungeonFromScene(SceneID(scene))->SetMQ();
+    });
+}
+
+void SaveManager::LoadRandomizerVersion3() {
+    auto randoContext = Rando::Context::GetInstance();
+    SaveManager::Instance->LoadArray("itemLocations", RC_MAX, [&](size_t i) {
+        SaveManager::Instance->LoadStruct("", [&]() {
+            SaveManager::Instance->LoadData("rgID", randoContext->GetItemLocation(i)->RefPlacedItem());
+            RandomizerGet rg = RG_NONE;
+            SaveManager::Instance->LoadData("fakeRgID", rg, RG_NONE);
+            if (rg != RG_NONE) {
+                randoContext->overrides[static_cast<RandomizerCheck>(i)] =
+                    Rando::ItemOverride(static_cast<RandomizerCheck>(i), rg);
+                SaveManager::Instance->LoadStruct("trickName", [&]() {
+                    SaveManager::Instance->LoadData(
+                        "english", randoContext->overrides[static_cast<RandomizerCheck>(i)].GetTrickName().english);
+                    SaveManager::Instance->LoadData(
+                        "french", randoContext->overrides[static_cast<RandomizerCheck>(i)].GetTrickName().french);
+                });
+            }
+            uint16_t price = 0; 
+            SaveManager::Instance->LoadData("price", price, (uint16_t)0);
+            if (price > 0) {
+                // Technically an item with a custom price (scrub/shopsanity) could have
+                // a 0 rupee price, meaning it would not be loaded after the first save and
+                // disappear from the save file. However, this is fine, as the default price on
+                // all ItemLocations is 0 anyway.
+                randoContext->GetItemLocation(i)->SetCustomPrice(price);
+            }
+        });
+    });
+
+    auto entranceCtx = randoContext->GetEntranceShuffler();
+    SaveManager::Instance->LoadArray("entrances", ARRAY_COUNT(entranceCtx->entranceOverrides), [&](size_t i) {
+        SaveManager::Instance->LoadStruct("", [&]() {
+            SaveManager::Instance->LoadData("index", entranceCtx->entranceOverrides[i].index);
+            SaveManager::Instance->LoadData("destination", entranceCtx->entranceOverrides[i].destination);
+            SaveManager::Instance->LoadData("blueWarp", entranceCtx->entranceOverrides[i].blueWarp);
+            SaveManager::Instance->LoadData("override", entranceCtx->entranceOverrides[i].override);
+            SaveManager::Instance->LoadData("overrideDestination",
+                                            entranceCtx->entranceOverrides[i].overrideDestination);
+        });
+    });
+
+    SaveManager::Instance->LoadArray("seed", randoContext->hashIconIndexes.size(), [&](size_t i) {
+        SaveManager::Instance->LoadData("", randoContext->hashIconIndexes[i]);
+    });
+
+    std::string inputSeed;
+    SaveManager::Instance->LoadData("inputSeed", inputSeed);
+    randoContext->GetSettings()->SetSeedString(inputSeed);
+
+    uint32_t finalSeed;
+    SaveManager::Instance->LoadData("finalSeed", finalSeed);
+    randoContext->GetSettings()->SetSeed(finalSeed);
+
+    SaveManager::Instance->LoadArray("randoSettings", RSK_MAX, [&](size_t i) {
+        int value = 0;
+        SaveManager::Instance->LoadData("", value);
+        randoContext->GetOption(RandomizerSettingKey(i)).SetSelectedIndex(value);
+    });
+
+    SaveManager::Instance->LoadArray("hintLocations", RH_MAX, [&](size_t i) {
+        SaveManager::Instance->LoadStruct("", [&]() {
+            RandomizerHintKey rhk = RH_NONE;
+            SaveManager::Instance->LoadData("hintKey", rhk);
+            std::string english, french, german;
+            SaveManager::Instance->LoadStruct("hintText", [&]() {
+                SaveManager::Instance->LoadData("english", english);
+                SaveManager::Instance->LoadData("french", french);
+                SaveManager::Instance->LoadData("german", german);
+            });
+            RandomizerCheck rc = RC_UNKNOWN_CHECK;
+            SaveManager::Instance->LoadData("hintedCheck", rc);
+            HintType ht = HINT_TYPE_STATIC;
+            SaveManager::Instance->LoadData("hintType", ht);
+            std::string englishRegion, frenchRegion, germanRegion;
+            SaveManager::Instance->LoadStruct("hintedRegion", [&]() {
+                SaveManager::Instance->LoadData("english", englishRegion);
+                SaveManager::Instance->LoadData("french", frenchRegion);
+                SaveManager::Instance->LoadData("german", germanRegion);
+            });
+            randoContext->AddHint(rhk, Text(english, french, /*spanish*/"", german), rc, ht, Text(englishRegion, frenchRegion, /*spanish*/"", germanRegion));
+        });
+    });
+
+    SaveManager::Instance->LoadData("adultTradeItems", gSaveContext.adultTradeItems);
+
+    SaveManager::Instance->LoadData("triforcePiecesCollected", gSaveContext.triforcePiecesCollected);
+
+    SaveManager::Instance->LoadData("pendingIceTrapCount", gSaveContext.pendingIceTrapCount);
+
+    std::shared_ptr<Randomizer> randomizer = OTRGlobals::Instance->gRandomizer;
+
+    size_t mqDungeonCount;
+    SaveManager::Instance->LoadData("masterQuestDungeonCount", mqDungeonCount, (size_t)0);
+
+    randoContext->GetDungeons()->ClearAllMQ();
+    SaveManager::Instance->LoadArray("masterQuestDungeons", mqDungeonCount, [&](size_t i) {
+        size_t dungeonId;
+        SaveManager::Instance->LoadData("", dungeonId);
+        randoContext->GetDungeon(dungeonId)->SetMQ();
+    });
+
+    randoContext->GetTrials()->SkipAll();
+    SaveManager::Instance->LoadArray("requiredTrials", randoContext->GetOption(RSK_TRIAL_COUNT).GetSelectedOptionIndex()+1, [&](size_t i) {
+        size_t trialId;
+        SaveManager::Instance->LoadData("", trialId);
+        randoContext->GetTrial(trialId)->SetAsRequired();
     });
 }
 
 void SaveManager::SaveRandomizer(SaveContext* saveContext, int sectionID, bool fullSave) {
 
     if(saveContext->questId != QUEST_RANDOMIZER) return;
+    auto randoContext = Rando::Context::GetInstance();
 
     SaveManager::Instance->SaveArray("itemLocations", RC_MAX, [&](size_t i) {
         SaveManager::Instance->SaveStruct("", [&]() {
-            SaveManager::Instance->SaveData("rgID", saveContext->itemLocations[i].get.rgID);
-            SaveManager::Instance->SaveData("fakeRgID", saveContext->itemLocations[i].get.fakeRgID);
-            SaveManager::Instance->SaveData("trickName", saveContext->itemLocations[i].get.trickName);
+            SaveManager::Instance->SaveData("rgID", randoContext->GetItemLocation(i)->GetPlacedRandomizerGet());
+            if (randoContext->GetItemLocation(i)->GetPlacedRandomizerGet() == RG_ICE_TRAP) {
+                SaveManager::Instance->SaveData("fakeRgID", randoContext->overrides[static_cast<RandomizerCheck>(i)].LooksLike());
+                SaveManager::Instance->SaveStruct("trickName", [&]() {
+                    SaveManager::Instance->SaveData("english", randoContext->overrides[static_cast<RandomizerCheck>(i)].GetTrickName().GetEnglish());
+                    SaveManager::Instance->SaveData("french", randoContext->overrides[static_cast<RandomizerCheck>(i)].GetTrickName().GetFrench());
+                    // TODO: German (trick names don't have german translations yet)
+                });
+            }
+            if (randoContext->GetItemLocation(i)->HasCustomPrice()) {
+                SaveManager::Instance->SaveData("price", randoContext->GetItemLocation(i)->GetPrice());
+            }
         });
     });
 
-    SaveManager::Instance->SaveArray("entrances", ARRAY_COUNT(saveContext->entranceOverrides), [&](size_t i) {
+    auto entranceCtx = randoContext->GetEntranceShuffler();
+    SaveManager::Instance->SaveArray("entrances", ARRAY_COUNT(entranceCtx->entranceOverrides), [&](size_t i) {
         SaveManager::Instance->SaveStruct("", [&]() {
-            SaveManager::Instance->SaveData("index", saveContext->entranceOverrides[i].index);
-            SaveManager::Instance->SaveData("destination", saveContext->entranceOverrides[i].destination);
-            SaveManager::Instance->SaveData("blueWarp", saveContext->entranceOverrides[i].blueWarp);
-            SaveManager::Instance->SaveData("override", saveContext->entranceOverrides[i].override);
-            SaveManager::Instance->SaveData("overrideDestination", saveContext->entranceOverrides[i].overrideDestination);
+            SaveManager::Instance->SaveData("index", entranceCtx->entranceOverrides[i].index);
+            SaveManager::Instance->SaveData("destination", entranceCtx->entranceOverrides[i].destination);
+            SaveManager::Instance->SaveData("blueWarp", entranceCtx->entranceOverrides[i].blueWarp);
+            SaveManager::Instance->SaveData("override", entranceCtx->entranceOverrides[i].override);
+            SaveManager::Instance->SaveData("overrideDestination", entranceCtx->entranceOverrides[i].overrideDestination);
         });
     });
 
-    SaveManager::Instance->SaveArray("seed", ARRAY_COUNT(saveContext->seedIcons), [&](size_t i) {
-        SaveManager::Instance->SaveData("", saveContext->seedIcons[i]);
+    SaveManager::Instance->SaveArray("seed", randoContext->hashIconIndexes.size(), [&](size_t i) {
+        SaveManager::Instance->SaveData("", randoContext->hashIconIndexes[i]);
     });
 
-    SaveManager::Instance->SaveData("inputSeed", saveContext->inputSeed);
+    SaveManager::Instance->SaveData("inputSeed", randoContext->GetSettings()->GetSeedString());
 
-    SaveManager::Instance->SaveData("finalSeed", saveContext->finalSeed);
+    SaveManager::Instance->SaveData("finalSeed", randoContext->GetSettings()->GetSeed());
 
     SaveManager::Instance->SaveArray("randoSettings", RSK_MAX, [&](size_t i) {
-        SaveManager::Instance->SaveData("", saveContext->randoSettings[i].value);
+        SaveManager::Instance->SaveData("", randoContext->GetOption((RandomizerSettingKey(i))).GetSelectedOptionIndex());
     });
 
-    SaveManager::Instance->SaveArray("hintLocations", ARRAY_COUNT(saveContext->hintLocations), [&](size_t i) {
+    SaveManager::Instance->SaveArray("hintLocations", RH_MAX, [&](size_t i) {
         SaveManager::Instance->SaveStruct("", [&]() {
-            SaveManager::Instance->SaveData("check", saveContext->hintLocations[i].check);
-            SaveManager::Instance->SaveData("hintText", saveContext->hintLocations[i].hintText);
+            auto hint = randoContext->GetHint(RandomizerHintKey(i));
+            SaveManager::Instance->SaveData("hintKey", RandomizerHintKey(i));
+            SaveManager::Instance->SaveStruct("hintText", [&]() {
+                SaveManager::Instance->SaveData("english", hint->GetText().GetEnglish());
+                SaveManager::Instance->SaveData("french", hint->GetText().GetFrench());
+                SaveManager::Instance->SaveData("german", hint->GetText().GetGerman());
+            });
+            SaveManager::Instance->SaveData("hintedCheck", hint->GetHintedLocation());
+            SaveManager::Instance->SaveData("hintType", hint->GetHintType());
+            SaveManager::Instance->SaveStruct("hintedRegion", [&]() {
+                SaveManager::Instance->SaveData("english", hint->GetHintedRegionText().GetEnglish());
+                SaveManager::Instance->SaveData("french", hint->GetHintedRegionText().GetFrench());
+                SaveManager::Instance->SaveData("german", hint->GetHintedRegionText().GetGerman());
+            });
         });
     });
-
-    SaveManager::Instance->SaveData("childAltarText", saveContext->childAltarText);
-    SaveManager::Instance->SaveData("adultAltarText", saveContext->adultAltarText);
-    SaveManager::Instance->SaveData("ganonHintText", saveContext->ganonHintText);
-    SaveManager::Instance->SaveData("ganonText", saveContext->ganonText);
-    SaveManager::Instance->SaveData("dampeText", saveContext->dampeText);
-    SaveManager::Instance->SaveData("gregHintText", saveContext->gregHintText);
-    SaveManager::Instance->SaveData("sheikText", saveContext->sheikText);
-    SaveManager::Instance->SaveData("sariaText", saveContext->sariaText);
-    SaveManager::Instance->SaveData("warpMinuetText", saveContext->warpMinuetText);
-    SaveManager::Instance->SaveData("warpBoleroText", saveContext->warpBoleroText);
-    SaveManager::Instance->SaveData("warpSerenadeText", saveContext->warpSerenadeText);
-    SaveManager::Instance->SaveData("warpRequiemText", saveContext->warpRequiemText);
-    SaveManager::Instance->SaveData("warpNocturneText", saveContext->warpNocturneText);
-    SaveManager::Instance->SaveData("warpPreludeText", saveContext->warpPreludeText);
 
     SaveManager::Instance->SaveData("adultTradeItems", saveContext->adultTradeItems);
 
-    SaveManager::Instance->SaveData("triforcePiecesCollected", saveContext->triforcePiecesCollected);
+    SaveManager::Instance->SaveData("triforcePiecesCollected", gSaveContext.triforcePiecesCollected);
 
     SaveManager::Instance->SaveData("pendingIceTrapCount", saveContext->pendingIceTrapCount);
 
     std::shared_ptr<Randomizer> randomizer = OTRGlobals::Instance->gRandomizer;
 
-    std::vector<std::pair<RandomizerCheck, u16>> merchantPrices;
-    for (const auto & [ check, price ] : randomizer->merchantPrices) {
-        merchantPrices.push_back(std::make_pair(check, price));
-    }
+    SaveManager::Instance->SaveData("masterQuestDungeonCount", randoContext->GetDungeons()->CountMQ());
 
-    SaveManager::Instance->SaveData("merchantPricesSize", merchantPrices.size());
-    SaveManager::Instance->SaveArray("merchantPrices", merchantPrices.size(), [&](size_t i) {
-        SaveManager::Instance->SaveStruct("", [&]() {
-            SaveManager::Instance->SaveData("check", merchantPrices[i].first);
-            SaveManager::Instance->SaveData("price", merchantPrices[i].second);
-        });
+    SaveManager::Instance->SaveArray("masterQuestDungeons", randoContext->GetDungeons()->GetDungeonListSize(), [&](size_t i) {
+        if (randoContext->GetDungeon(i)->IsMQ()) {
+            SaveManager::Instance->SaveData("", i);
+        }
     });
 
-    SaveManager::Instance->SaveData("masterQuestDungeonCount", saveContext->mqDungeonCount);
-
-    std::vector<uint16_t> masterQuestDungeons;
-    for (const auto scene : randomizer->masterQuestDungeons) {
-        masterQuestDungeons.push_back(scene);
-    }
-    SaveManager::Instance->SaveArray("masterQuestDungeons", masterQuestDungeons.size(), [&](size_t i) {
-        SaveManager::Instance->SaveData("", masterQuestDungeons[i]);
+    SaveManager::Instance->SaveArray("requiredTrials", randoContext->GetTrials()->GetTrialListSize(), [&](size_t i) {
+        if (randoContext->GetTrial(i)->IsRequired()) {
+            SaveManager::Instance->SaveData("", i);
+        }
     });
 }
 
@@ -439,23 +586,24 @@ void SaveManager::InitMeta(int fileNum) {
     fileMetaInfo[fileNum].gregFound = Flags_GetRandomizerInf(RAND_INF_GREG_FOUND);
     fileMetaInfo[fileNum].defense = gSaveContext.inventory.defenseHearts;
     fileMetaInfo[fileNum].health = gSaveContext.health;
+    auto randoContext = Rando::Context::GetInstance();
 
-    for (int i = 0; i < ARRAY_COUNT(fileMetaInfo[fileNum].seedHash); i++) {
-        fileMetaInfo[fileNum].seedHash[i] = gSaveContext.seedIcons[i];
+        for (int i = 0; i < ARRAY_COUNT(fileMetaInfo[fileNum].seedHash); i++) {
+        fileMetaInfo[fileNum].seedHash[i] = randoContext->hashIconIndexes[i];
     }
 
     fileMetaInfo[fileNum].randoSave = IS_RANDO;
     // If the file is marked as a Master Quest file or if we're randomized and have at least one master quest dungeon, we need the mq otr.
-    fileMetaInfo[fileNum].requiresMasterQuest = IS_MASTER_QUEST || (IS_RANDO && gSaveContext.mqDungeonCount > 0);
+    fileMetaInfo[fileNum].requiresMasterQuest = IS_MASTER_QUEST || (IS_RANDO && randoContext->GetDungeons()->CountMQ() > 0);
     // If the file is not marked as Master Quest, it could still theoretically be a rando save with all 12 MQ dungeons, in which case
     // we don't actually require a vanilla OTR.
-    fileMetaInfo[fileNum].requiresOriginal = !IS_MASTER_QUEST && (!IS_RANDO || gSaveContext.mqDungeonCount < 12);
+    fileMetaInfo[fileNum].requiresOriginal = !IS_MASTER_QUEST && (!IS_RANDO || randoContext->GetDungeons()->CountMQ() < 12);
 
     fileMetaInfo[fileNum].buildVersionMajor = gSaveContext.sohStats.buildVersionMajor;
     fileMetaInfo[fileNum].buildVersionMinor = gSaveContext.sohStats.buildVersionMinor;
     fileMetaInfo[fileNum].buildVersionPatch = gSaveContext.sohStats.buildVersionPatch;
-    SohUtils::CopyStringToCharArray(fileMetaInfo[fileNum].buildVersion, gSaveContext.sohStats.buildVersion,
-                                    ARRAY_COUNT(fileMetaInfo[fileNum].buildVersion));
+    strncpy(fileMetaInfo[fileNum].buildVersion, gSaveContext.sohStats.buildVersion, sizeof(fileMetaInfo[fileNum].buildVersion) - 1);
+    fileMetaInfo[fileNum].buildVersion[sizeof(fileMetaInfo[fileNum].buildVersion) - 1] = 0;
 }
 
 void SaveManager::InitFile(bool isDebug) {
@@ -719,11 +867,11 @@ void SaveManager::InitFileDebug() {
 
     if (LINK_AGE_IN_YEARS == YEARS_CHILD) {
         gSaveContext.equips.buttonItems[0] = ITEM_SWORD_KOKIRI;
-        Inventory_ChangeEquipment(EQUIP_TYPE_SWORD, EQUIP_VALUE_SWORD_KOKIRI);
+        Inventory_ChangeEquipment(EQUIP_SWORD, 1);
         if (gSaveContext.fileNum == 0xFF) {
             gSaveContext.equips.buttonItems[1] = ITEM_SLINGSHOT;
             gSaveContext.equips.cButtonSlots[0] = SLOT_SLINGSHOT;
-            Inventory_ChangeEquipment(EQUIP_TYPE_SHIELD, EQUIP_VALUE_SHIELD_DEKU);
+            Inventory_ChangeEquipment(EQUIP_SHIELD, 1);
         }
     }
 
@@ -862,11 +1010,11 @@ void SaveManager::InitFileMaxed() {
 
     if (LINK_AGE_IN_YEARS == YEARS_CHILD) {
         gSaveContext.equips.buttonItems[0] = ITEM_SWORD_KOKIRI;
-        Inventory_ChangeEquipment(EQUIP_TYPE_SWORD, EQUIP_VALUE_SWORD_KOKIRI);
+        Inventory_ChangeEquipment(EQUIP_SWORD, 1);
         if (gSaveContext.fileNum == 0xFF) {
             gSaveContext.equips.buttonItems[1] = ITEM_SLINGSHOT;
             gSaveContext.equips.cButtonSlots[0] = SLOT_SLINGSHOT;
-            Inventory_ChangeEquipment(EQUIP_TYPE_SHIELD, EQUIP_VALUE_SHIELD_DEKU);
+            Inventory_ChangeEquipment(EQUIP_SHIELD, 1);
         }
     }
 
@@ -1543,8 +1691,10 @@ void SaveManager::LoadBaseVersion3() {
         SaveManager::Instance->LoadData("gsTokens", gSaveContext.inventory.gsTokens);
     });
     SaveManager::Instance->LoadStruct("sohStats", []() {
-        SaveManager::Instance->LoadCharArray("buildVersion", gSaveContext.sohStats.buildVersion,
-                                             ARRAY_COUNT(gSaveContext.sohStats.buildVersion));
+        std::string buildVersion;
+        SaveManager::Instance->LoadData("buildVersion", buildVersion);
+        strncpy(gSaveContext.sohStats.buildVersion, buildVersion.c_str(), ARRAY_COUNT(gSaveContext.sohStats.buildVersion) - 1);
+        gSaveContext.sohStats.buildVersion[ARRAY_COUNT(gSaveContext.sohStats.buildVersion) - 1] = 0;
         SaveManager::Instance->LoadData("buildVersionMajor", gSaveContext.sohStats.buildVersionMajor);
         SaveManager::Instance->LoadData("buildVersionMinor", gSaveContext.sohStats.buildVersionMinor);
         SaveManager::Instance->LoadData("buildVersionPatch", gSaveContext.sohStats.buildVersionPatch);
@@ -2032,13 +2182,6 @@ void SaveManager::SaveBase(SaveContext* saveContext, int sectionID, bool fullSav
     SaveManager::Instance->SaveData("dogParams", saveContext->dogParams);
 }
 
-// Load a string into a char array based on size and ensuring it is null terminated when overflowed
-void SaveManager::LoadCharArray(const std::string& name, char* destination, size_t size) {
-    std::string temp;
-    SaveManager::Instance->LoadData(name, temp);
-    SohUtils::CopyStringToCharArray(destination, temp, size);
-}
-
 void SaveManager::SaveArray(const std::string& name, const size_t size, SaveArrayFunc func) {
     // Create an empty array and set it as the current save context, then call the function that saves an array entry.
     nlohmann::json* saveJsonContext = currentJsonContext;
@@ -2162,8 +2305,8 @@ void SaveManager::CopyZeldaFile(int from, int to) {
     fileMetaInfo[to].buildVersionMajor = fileMetaInfo[from].buildVersionMajor;
     fileMetaInfo[to].buildVersionMinor = fileMetaInfo[from].buildVersionMinor;
     fileMetaInfo[to].buildVersionPatch = fileMetaInfo[from].buildVersionPatch;
-    SohUtils::CopyStringToCharArray(fileMetaInfo[to].buildVersion, fileMetaInfo[from].buildVersion,
-                                    ARRAY_COUNT(fileMetaInfo[to].buildVersion));
+    strncpy(fileMetaInfo[to].buildVersion, fileMetaInfo[from].buildVersion, sizeof(fileMetaInfo[to].buildVersion) - 1);
+    fileMetaInfo[to].buildVersion[sizeof(fileMetaInfo[to].buildVersion) - 1] = 0;
 }
 
 void SaveManager::DeleteZeldaFile(int fileNum) {

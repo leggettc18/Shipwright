@@ -629,7 +629,7 @@ void CreateGanonAndSheikText() {
     });
     Text lightArrowArea = GetHintRegion(ctx->GetItemLocation(lightArrowLocation[0])->GetParentRegionKey())->GetHint().GetText();
     std::vector<RandomizerCheck> locsToCheck = {RC_GANONDORF_HINT};
-    
+
 
     //If there is no light arrow location, it was in the player's inventory at the start
     auto hint = ::Hint(RHT_LIGHT_ARROW_LOCATION_HINT);
@@ -652,7 +652,7 @@ void CreateGanonAndSheikText() {
       // Add second text box
       ganonHintText = ganonHintText + "^";
       if (masterSwordLocation.empty()) {
-        ganonHintText = ganonHintText + ::Hint(RHT_MASTER_SWORD_LOCATION_HINT).GetText() + "%r" + Hint(RHT_YOUR_POCKET).GetText() + "%w";
+        ganonHintText = ganonHintText + ::Hint(RHT_MASTER_SWORD_LOCATION_HINT).GetText() + "%r" + ::Hint(RHT_YOUR_POCKET).GetText() + "%w";
         masterSwordHintLoc = "Link's Pocket";
       } else {
         ganonHintText = ganonHintText + ::Hint(RHT_MASTER_SWORD_LOCATION_HINT).GetText() + "%r" + masterSwordArea + "%w";
@@ -671,11 +671,11 @@ void CreateGanonAndSheikText() {
         sheikText = sheikText + "^" + ::Hint(RHT_SHEIK_MASTER_SWORD_LOCATION_HINT).GetText() + masterSwordArea + "%w.";
       }
     }
-    ctx->AddHint(RH_SHEIK_LIGHT_ARROWS, AutoFormatHintText(sheikText), lightArrowLocation[0], HINT_TYPE_STATIC, lightArrowArea);
 
     if (IsReachableWithout(locsToCheck, lightArrowLocation[0], true)) {
       ctx->GetItemLocation(lightArrowLocation[0])->SetAsHinted();
     }
+    ctx->AddHint(RH_SHEIK_LIGHT_ARROWS, AutoFormatHintText(sheikText), lightArrowLocation[0], HINT_TYPE_STATIC, lightArrowArea);
 
     if (ctx->GetOption(RSK_SHUFFLE_MASTER_SWORD)) {
       if (IsReachableWithout(locsToCheck, masterSwordLocation[0], true)) {

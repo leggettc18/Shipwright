@@ -283,30 +283,6 @@ typedef struct {
     // #endregion
     // #region SOH [Randomizer]
     // Upstream TODO: Move these to their own struct or name to more obviously specific to Randomizer
-    /*        */ HintLocationRando hintLocations[50];
-    /*        */ EntranceOverride entranceOverrides[ENTRANCE_OVERRIDES_MAX_COUNT];
-    /*        */ char childAltarText[250];
-    /*        */ char adultAltarText[750];
-    /*        */ RandomizerCheck rewardCheck[9];
-    /*        */ char ganonHintText[300];
-    /*        */ char gregHintText[250];
-    /*        */ char ganonText[250];
-    /*        */ char dampeText[150];
-    /*        */ char sheikText[200];
-    /*        */ char sariaText[150];
-    /*        */ char warpMinuetText[100];
-    /*        */ char warpBoleroText[100];
-    /*        */ char warpSerenadeText[100];
-    /*        */ char warpRequiemText[100];
-    /*        */ char warpNocturneText[100];
-    /*        */ char warpPreludeText[100];
-    /*        */ RandomizerCheck masterSwordHintCheck;
-    /*        */ RandomizerCheck lightArrowHintCheck;
-    /*        */ RandomizerCheck sariaCheck;
-    /*        */ RandomizerCheck gregCheck;
-    /*        */ RandomizerCheck dampeCheck;
-    /*        */ char inputSeed[1024];
-    /*        */ u32 finalSeed;
     /*        */ u16 randomizerInf[10];
     /*        */ u16 adultTradeItems;
     /*        */ u8 triforcePiecesCollected;

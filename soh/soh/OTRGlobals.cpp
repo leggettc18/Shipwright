@@ -76,6 +76,7 @@
 #include "Enhancements/item-tables/ItemTableManager.h"
 #include "SohGui.hpp"
 #include "ActorDB.h"
+#include "Enhancements/item-queue/ItemEventQueue.h"
 
 #ifdef ENABLE_CROWD_CONTROL
 #include "Enhancements/crowd-control/CrowdControl.h"
@@ -299,6 +300,7 @@ OTRGlobals::OTRGlobals() {
     gRandoContext->AddExcludedOptions();
     gRandoContext->GetSettings()->CreateOptions();
     gRandomizer = std::make_shared<Randomizer>();
+    gItemEventQueue = std::make_shared<ItemEventQueue>();
 
     hasMasterQuest = hasOriginal = false;
 
@@ -1990,6 +1992,10 @@ extern "C" CowIdentity Randomizer_IdentifyCow(s32 sceneNum, s32 posX, s32 posZ) 
 extern "C" GetItemEntry ItemTable_Retrieve(int16_t getItemID) {
     GetItemEntry giEntry = ItemTableManager::Instance->RetrieveItemEntry(MOD_NONE, getItemID);
     return giEntry;
+}
+
+extern "C" GetItemEntry* ItemTable_RetrievePtr(int16_t getItemID) {
+    return ItemTableManager::Instance->RetrieveItemEntryPtr(MOD_NONE, getItemID);
 }
 
 extern "C" GetItemEntry ItemTable_RetrieveEntry(s16 tableID, s16 getItemID) {

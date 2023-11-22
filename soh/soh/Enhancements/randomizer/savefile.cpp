@@ -23,7 +23,7 @@ void StartingItemGive(GetItemEntry getItemEntry) {
         if (getItemEntry.getItemId == RG_ICE_TRAP) {
             gSaveContext.pendingIceTrapCount++;
         } else {
-            Randomizer_Item_Give(NULL, getItemEntry);
+            Randomizer_Item_Give(NULL, &getItemEntry);
         }
     }
 }

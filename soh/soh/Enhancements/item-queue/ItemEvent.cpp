@@ -7,14 +7,7 @@
 
 ItemEvent::ItemEvent() : mGiEntry(GET_ITEM_NONE), mMethod(ItemObtainMethod::DROP), mItemGetUIFlags(ItemGet_None), mFlagType(FLAG_NONE), mFlag(0) {}
 
-bool ItemEvent::HasEntry(const GetItemEntry& giEntry) const {
-    if (giEntry.modIndex == mGiEntry.modIndex) {
-        return giEntry.getItemId == mGiEntry.getItemId;
-    }
-    return false;
-}
-
-GetItemEntry* ItemEvent::RetrieveGetItemEntry() {
+const GetItemEntry* ItemEvent::RetrieveGetItemEntry() const {
     return &mGiEntry;
 }
 
@@ -24,3 +17,7 @@ void ItemEvent::SetFlag() const {
 
 ItemEvent::ItemEvent(const GetItemEntry& giEntry, const ItemObtainMethod method, const uint8_t itemGetUIFlags, const FlagType flagType, const int16_t flag)
     : mGiEntry(giEntry), mMethod(method), mItemGetUIFlags(itemGetUIFlags), mFlagType(flagType), mFlag(flag) {}
+
+bool ItemEvent::HasFlags(const uint8_t itemGetUIFlags) const {
+    return (mItemGetUIFlags & itemGetUIFlags) > 0;
+}

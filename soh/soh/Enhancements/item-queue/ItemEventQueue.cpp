@@ -1,5 +1,30 @@
 #include "ItemEventQueue.h"
 
+#include "soh/OTRGlobals.h"
+
+extern "C" const GetItemEntry* ItemEventQueue_FrontGIEntry() {
+    if (OTRGlobals::Instance->gItemEventQueue->Empty()) {
+        return nullptr;
+    }
+    return OTRGlobals::Instance->gItemEventQueue->Front().RetrieveGetItemEntry();
+}
+
+extern "C" uint8_t ItemEventQueue_FrontHasFlags(const uint8_t itemGetUIFlags) {
+    if (!OTRGlobals::Instance->gItemEventQueue->Empty() &&
+        OTRGlobals::Instance->gItemEventQueue->Front().HasFlags(itemGetUIFlags)) {
+        return 1;
+    }
+    return 0;
+}
+
+extern "C" void ItemEventQueue_PopFront() {
+    OTRGlobals::Instance->gItemEventQueue->PopFront();
+}
+
+bool ItemEventQueue::Empty() const {
+    return mQueue.empty();
+}
+
 void ItemEventQueue::AddItemEvent(const GetItemEntry& giEntry, ItemObtainMethod method, uint8_t itemGetUIFlags, FlagType flagType, int16_t flag) {
     mQueue.emplace_back(giEntry, method, itemGetUIFlags, flagType, flag);
 }

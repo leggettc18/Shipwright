@@ -36,8 +36,8 @@ class ItemEvent {
 public:
     ItemEvent();
     ItemEvent(const GetItemEntry& giEntry, ItemObtainMethod method, uint8_t itemGetUIFlags, FlagType flagType, int16_t flag);
-    bool HasEntry(const GetItemEntry& giEntry) const;
-    GetItemEntry* RetrieveGetItemEntry();
+    const GetItemEntry* RetrieveGetItemEntry() const;
+    bool HasFlags(uint8_t itemGetUIFlags) const;
     void SetFlag() const;
 
 private:

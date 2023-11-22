@@ -1791,8 +1791,8 @@ void Randomizer_GameplayStats_SetTimestamp(uint16_t item) {
     }
 }
 
-u8 Return_Item_Entry(GetItemEntry itemEntry, ItemID returnItem ) {
-    GameInteractor_ExecuteOnItemReceiveHooks(itemEntry);
+u8 Return_Item_Entry(GetItemEntry* itemEntry, ItemID returnItem ) {
+    GameInteractor_ExecuteOnItemReceiveHooks(*itemEntry);
     return returnItem;
 }
 
@@ -1801,14 +1801,14 @@ u8 Return_Item(u8 itemID, ModIndex modId, ItemID returnItem) {
     // ITEM_SOLD_OUT doesn't have an ItemTable entry, so pass custom entry instead
     if (itemID == ITEM_SOLD_OUT) {
         GetItemEntry gie = { ITEM_SOLD_OUT, 0, 0, 0, 0, 0, 0, 0, false, ITEM_FROM_NPC, ITEM_CATEGORY_LESSER, NULL };
-        return Return_Item_Entry(gie, returnItem);
+        return Return_Item_Entry(&gie, returnItem);
     }
     int32_t get = GetGIID(itemID);
     if (get == -1) {
         modId = MOD_RANDOMIZER;
         get = itemID;
     }
-    return Return_Item_Entry(ItemTable_RetrieveEntry(modId, get), returnItem);
+    return Return_Item_Entry(ItemTable_RetrievePtr(get), returnItem);
 }
 
 /**
@@ -2384,8 +2384,8 @@ u8 Item_Give(PlayState* play, u8 item) {
     return Return_Item(item, MOD_NONE, returnItem);
 }
 
-u16 Randomizer_Item_Give(PlayState* play, GetItemEntry giEntry) {
-    uint16_t item = giEntry.getItemId;
+u16 Randomizer_Item_Give(PlayState* play, GetItemEntry* giEntry) {
+    uint16_t item = giEntry->getItemId;
     uint16_t temp;
     uint16_t i;
     uint16_t slot;

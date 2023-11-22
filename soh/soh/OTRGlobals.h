@@ -19,6 +19,7 @@
 #include <vector>
 #include "Enhancements/randomizer/context.h"
 
+class ItemEventQueue;
 const std::string customMessageTableID = "BaseGameOverrides";
 const std::string appShortName = "soh";
 
@@ -31,6 +32,7 @@ public:
     std::shared_ptr<SaveStateMgr> gSaveStateMgr;
     std::shared_ptr<Randomizer> gRandomizer;
     std::shared_ptr<Rando::Context> gRandoContext;
+    std::shared_ptr<ItemEventQueue> gItemEventQueue;
 
     OTRGlobals();
     ~OTRGlobals();
@@ -153,6 +155,7 @@ int CustomMessage_RetrieveIfExists(PlayState* play);
 void Overlay_DisplayText(float duration, const char* text);
 void Overlay_DisplayText_Seconds(int seconds, const char* text);
 GetItemEntry ItemTable_Retrieve(int16_t getItemID);
+GetItemEntry* ItemTable_RetrievePtr(int16_t getItemID);
 GetItemEntry ItemTable_RetrieveEntry(s16 modIndex, s16 getItemID);
 void Entrance_ClearEntranceTrackingData(void);
 void Entrance_InitEntranceTrackingData(void);

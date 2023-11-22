@@ -30,6 +30,7 @@
 #include "soh/Enhancements/game-interactor/GameInteractor_Hooks.h"
 #include "soh/Enhancements/randomizer/randomizer_grotto.h"
 #include "soh/frame_interpolation.h"
+#include "soh/Enhancements/item-queue/ItemEventQueue.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -1720,14 +1721,11 @@ s32 func_808332E4(Player* this) {
 }
 
 void func_808332F4(Player* this, PlayState* play) {
-    GetItemEntry giEntry;
-    if (this->getItemEntry.objectId == OBJECT_INVALID || (this->getItemId != this->getItemEntry.getItemId)) {
-        giEntry = ItemTable_Retrieve(this->getItemId);
-    } else {
-        giEntry = this->getItemEntry;
+    GetItemEntry* giEntry = ItemEventQueue_FrontGIEntry();
+    if (giEntry == NULL) {
+        giEntry = ItemTable_RetrievePtr(this->getItemId);
     }
-
-    this->unk_862 = ABS(giEntry.gi);
+    this->unk_862 = ABS(giEntry->gi);
 }
 
 static LinkAnimationHeader* func_80833338(Player* this) {
@@ -1904,7 +1902,6 @@ void func_808337D4(PlayState* play, Player* this) {
         this->interactRangeActor = spawnedActor;
         this->heldActor = spawnedActor;
         this->getItemId = GI_NONE;
-        this->getItemEntry = (GetItemEntry)GET_ITEM_NONE;
         this->unk_3BC.y = spawnedActor->shape.rot.y - this->actor.shape.rot.y;
         this->stateFlags1 |= PLAYER_STATE1_ITEM_OVER_HEAD;
     }
@@ -4728,11 +4725,10 @@ void func_8083A434(PlayState* play, Player* this) {
 
     if (this->getItemId == GI_HEART_CONTAINER_2) {
         this->unk_850 = 20;
-    } else if (this->getItemId >= 0 || (this->getItemEntry.objectId != OBJECT_INVALID && this->getItemEntry.getItemId >= 0)) {
+    } else if (this->getItemId >= 0 || ItemEventQueue_FrontGIEntry() != NULL) {
         this->unk_850 = 1;
     } else {
         this->getItemId = -this->getItemId;
-        this->getItemEntry.getItemId = -this->getItemEntry.getItemId;
     }
 }
 
@@ -5024,7 +5020,7 @@ static LinkAnimationHeader* D_80854548[] = {
 s32 func_8083B040(Player* this, PlayState* play) {
     s32 sp2C;
     s32 sp28;
-    GetItemEntry giEntry;
+    GetItemEntry* giEntry;
     Actor* targetActor;
 
     if ((this->unk_6AD != 0) &&
@@ -5060,12 +5056,12 @@ s32 func_8083B040(Player* this, PlayState* play) {
                         func_80835DE4(play, this, func_8084F104, 0);
 
                         if (sp2C >= 0) {
-                            if (this->getItemEntry.objectId == OBJECT_INVALID) {
-                                giEntry = ItemTable_Retrieve(D_80854528[sp2C]);
+                            if (ItemEventQueue_FrontGIEntry() != NULL) {
+                                giEntry = ItemTable_RetrievePtr(D_80854528[sp2C]);
                             } else {
-                                giEntry = this->getItemEntry;
+                                giEntry = ItemEventQueue_FrontGIEntry();
                             }
-                            func_8083AE40(this, giEntry.objectId);
+                            func_8083AE40(this, giEntry->objectId);
                         }
 
                         this->stateFlags1 |= PLAYER_STATE1_TEXT_ON_SCREEN | PLAYER_STATE1_IN_ITEM_CS | PLAYER_STATE1_IN_CUTSCENE;
@@ -6256,7 +6252,7 @@ void func_8083E4C4(PlayState* play, Player* this, GetItemEntry* giEntry) {
     } else {
         Item_Give(play, giEntry->itemId);
     }
-    func_80078884((this->getItemId < 0 || this->getItemEntry.getItemId < 0) ? NA_SE_SY_GET_BOXITEM : NA_SE_SY_GET_ITEM);
+    func_80078884((this->getItemId < 0 || ItemEventQueue_FrontGIEntry()->getItemId < 0) ? NA_SE_SY_GET_BOXITEM : NA_SE_SY_GET_ITEM);
 }
 
 // Sets a flag according to which type of flag is specified in player->pendingFlag.flagType
@@ -6309,7 +6305,6 @@ s32 func_8083E5A8(Player* this, PlayState* play) {
         this->actor.colChkInfo.damage = 0;
         func_80837C0C(play, this, 3, 0.0f, 0.0f, 0, 20);
         this->getItemId = GI_NONE;
-        this->getItemEntry = (GetItemEntry) GET_ITEM_NONE;
         // Gameplay stats: Increment Ice Trap count
         gSaveContext.sohStats.count[COUNT_ICE_TRAPS]++;
         return 1;
@@ -6317,25 +6312,23 @@ s32 func_8083E5A8(Player* this, PlayState* play) {
 
     if (iREG(67) || (((interactedActor = this->interactRangeActor) != NULL) &&
                      func_8002D53C(play, &play->actorCtx.titleCtx))) {
-        if (iREG(67) || (this->getItemId > GI_NONE)) {
+        if (iREG(67) || (this->getItemId > GI_NONE || ItemEventQueue_FrontGIEntry() != NULL)) {
             if (iREG(67)) {
                 this->getItemId = iREG(68);
             }
 
-            GetItemEntry giEntry;
-            if (this->getItemEntry.objectId == OBJECT_INVALID || (this->getItemId != this->getItemEntry.getItemId)) {
-                giEntry = ItemTable_Retrieve(this->getItemId);
-            } else {
-                giEntry = this->getItemEntry;
+            GetItemEntry* giEntry = ItemEventQueue_FrontGIEntry();
+            if (giEntry == NULL) {
+                giEntry = ItemTable_RetrievePtr(this->getItemId);
             }
-            if (giEntry.collectable) {
+            if (giEntry->collectable) {
                 if ((interactedActor != &this->actor) && !iREG(67)) {
                     interactedActor->parent = &this->actor;
                 }
 
                 iREG(67) = false;
 
-                if (IS_RANDO && giEntry.getItemId == RG_ICE_TRAP && giEntry.getItemFrom == ITEM_FROM_FREESTANDING) {
+                if (IS_RANDO && giEntry->getItemId == RG_ICE_TRAP && giEntry->getItemFrom == ITEM_FROM_FREESTANDING) {
                     this->actor.freezeTimer = 30;
                     Player_SetPendingFlag(this, play);
                     Message_StartTextbox(play, 0xF8, NULL);
@@ -6347,7 +6340,7 @@ s32 func_8083E5A8(Player* this, PlayState* play) {
                 // Show the cutscene for picking up an item. In vanilla, this happens in bombchu bowling alley (because getting bombchus need to show the cutscene)
                 // and whenever the player doesn't have the item yet. In rando, we're overruling this because we need to keep showing the cutscene
                 // because those items can be randomized and thus it's important to keep showing the cutscene.
-                uint8_t showItemCutscene = play->sceneNum == SCENE_BOMBCHU_BOWLING_ALLEY || Item_CheckObtainability(giEntry.itemId) == ITEM_NONE || IS_RANDO;
+                uint8_t showItemCutscene = play->sceneNum == SCENE_BOMBCHU_BOWLING_ALLEY || Item_CheckObtainability(giEntry->itemId) == ITEM_NONE || IS_RANDO;
 
                 // Only skip cutscenes for drops when they're items/consumables from bushes/rocks/enemies.
                 uint8_t isDropToSkip = (interactedActor->id == ACTOR_EN_ITEM00 && interactedActor->params != 6 && interactedActor->params != 17) || 
@@ -6361,13 +6354,13 @@ s32 func_8083E5A8(Player* this, PlayState* play) {
                 // Same as above but for rando. Rando is different because we want to enable cutscenes for items that the player already has because
                 // those items could be a randomized item coming from scrubs, freestanding PoH's and keys. So we need to once again overrule
                 // this specifically for items coming from bushes/rocks/enemies when the player has already picked that item up.
-                uint8_t skipItemCutsceneRando = IS_RANDO && Item_CheckObtainability(giEntry.itemId) != ITEM_NONE && isDropToSkip;
+                uint8_t skipItemCutsceneRando = IS_RANDO && Item_CheckObtainability(giEntry->itemId) != ITEM_NONE && isDropToSkip;
 
                 // Show cutscene when picking up a item.
                 if (showItemCutscene && !skipItemCutscene && !skipItemCutsceneRando) {
 
                     func_808323B4(play, this);
-                    func_8083AE40(this, giEntry.objectId);
+                    func_8083AE40(this, giEntry->objectId);
 
                     if (!(this->stateFlags2 & PLAYER_STATE2_UNDERWATER) || (this->currentBoots == PLAYER_BOOTS_IRON)) {
                         func_80836898(play, this, func_8083A434);
@@ -6381,35 +6374,32 @@ s32 func_8083E5A8(Player* this, PlayState* play) {
                 }
 
                 // Don't show cutscene when picking up an item.
-                func_8083E4C4(play, this, &giEntry);
+                func_8083E4C4(play, this, giEntry);
                 this->getItemId = GI_NONE;
-                this->getItemEntry = (GetItemEntry)GET_ITEM_NONE;
             }
         } else if (CHECK_BTN_ALL(sControlInput->press.button, BTN_A) && !(this->stateFlags1 & PLAYER_STATE1_ITEM_OVER_HEAD) &&
                    !(this->stateFlags2 & PLAYER_STATE2_UNDERWATER)) {
             if (this->getItemId != GI_NONE) {
-                GetItemEntry giEntry;
-                if (this->getItemEntry.objectId == OBJECT_INVALID) {
-                    giEntry = ItemTable_Retrieve(-this->getItemId);
-                } else {
-                    giEntry = this->getItemEntry;
+                GetItemEntry* giEntry = ItemEventQueue_FrontGIEntry();
+                if (giEntry == NULL) {
+                    giEntry = ItemTable_RetrievePtr(-this->getItemId);
                 }
                 EnBox* chest = (EnBox*)interactedActor;
                 if (CVarGetInteger("gFastChests", 0) != 0) {
-                    giEntry.gi = -1 * abs(giEntry.gi);
+                    giEntry->gi = -1 * abs(giEntry->gi);
                 }
 
-                if (giEntry.itemId != ITEM_NONE) {
-                    if (((Item_CheckObtainability(giEntry.itemId) == ITEM_NONE) && (giEntry.field & 0x40)) ||
-                        ((Item_CheckObtainability(giEntry.itemId) != ITEM_NONE) && (giEntry.field & 0x20))) {
+                if (giEntry->itemId != ITEM_NONE) {
+                    if (((Item_CheckObtainability(giEntry->itemId) == ITEM_NONE) && (giEntry->field & 0x40)) ||
+                        ((Item_CheckObtainability(giEntry->itemId) != ITEM_NONE) && (giEntry->field & 0x20))) {
                         this->getItemId = -GI_RUPEE_BLUE;
-                        giEntry = ItemTable_Retrieve(GI_RUPEE_BLUE);
+                        giEntry = ItemTable_RetrievePtr(GI_RUPEE_BLUE);
                     }
                 }
 
                 func_80836898(play, this, func_8083A434);
                 this->stateFlags1 |= PLAYER_STATE1_GETTING_ITEM | PLAYER_STATE1_ITEM_OVER_HEAD | PLAYER_STATE1_IN_CUTSCENE;
-                func_8083AE40(this, giEntry.objectId);
+                func_8083AE40(this, giEntry->objectId);
                 this->actor.world.pos.x =
                     chest->dyna.actor.world.pos.x - (Math_SinS(chest->dyna.actor.shape.rot.y) * 29.4343f);
                 this->actor.world.pos.z =
@@ -6417,8 +6407,8 @@ s32 func_8083E5A8(Player* this, PlayState* play) {
                 this->currentYaw = this->actor.shape.rot.y = chest->dyna.actor.shape.rot.y;
                 func_80832224(this);
 
-                if ((giEntry.itemId != ITEM_NONE) && (giEntry.gi >= 0) &&
-                    (Item_CheckObtainability(giEntry.itemId) == ITEM_NONE)) {
+                if ((giEntry->itemId != ITEM_NONE) && (giEntry->gi >= 0) &&
+                    (Item_CheckObtainability(giEntry->itemId) == ITEM_NONE)) {
                     func_808322D0(play, this, this->ageProperties->unk_98);
                     func_80832F54(play, this, 0x28F);
                     chest->unk_1F4 = 1;
@@ -6807,7 +6797,6 @@ s32 func_8083F7BC(Player* this, PlayState* play) {
                         this->stateFlags1 |= PLAYER_STATE1_ITEM_OVER_HEAD;
                         this->interactRangeActor = &wallPolyActor->actor;
                         this->getItemId = GI_NONE;
-                        this->getItemEntry = (GetItemEntry)GET_ITEM_NONE;
                         this->currentYaw = this->actor.wallYaw + 0x8000;
                         func_80832224(this);
 
@@ -9590,7 +9579,6 @@ static EffectBlureInit2 blureSword = {
 static Vec3s D_80854730 = { -57, 3377, 0 };
 
 void Player_InitCommon(Player* this, PlayState* play, FlexSkeletonHeader* skelHeader) {
-    this->getItemEntry = (GetItemEntry)GET_ITEM_NONE;
     this->ageProperties = &sAgeProperties[gSaveContext.linkAge];
     Actor_ProcessInitChain(&this->actor, sInitChain);
     this->meleeWeaponEffectIndex = TOTAL_EFFECT_COUNT;
@@ -12684,7 +12672,6 @@ void func_8084DF6C(PlayState* play, Player* this) {
     this->unk_862 = 0;
     this->stateFlags1 &= ~(PLAYER_STATE1_GETTING_ITEM | PLAYER_STATE1_ITEM_OVER_HEAD);
     this->getItemId = GI_NONE;
-    this->getItemEntry = (GetItemEntry)GET_ITEM_NONE;
     func_8005B1A4(Play_GetCamera(play, 0));
 }
 
@@ -12696,38 +12683,36 @@ void func_8084DFAC(PlayState* play, Player* this) {
 }
 
 s32 func_8084DFF4(PlayState* play, Player* this) {
-    GetItemEntry giEntry;
+    GetItemEntry* giEntry = ItemEventQueue_FrontGIEntry();
     s32 temp1;
     s32 temp2;
     static s32 equipItem;
     static bool equipNow;
 
-    if (this->getItemId == GI_NONE && this->getItemEntry.objectId == OBJECT_INVALID) {
+    if (this->getItemId == GI_NONE && ItemEventQueue_FrontGIEntry() == NULL) {
         return 1;
     }
 
     if (this->unk_84F == 0) {
-        if (this->getItemEntry.objectId == OBJECT_INVALID || (this->getItemId != this->getItemEntry.getItemId)) {
-            giEntry = ItemTable_Retrieve(this->getItemId);
-        } else {
-            giEntry = this->getItemEntry;
+        if (giEntry == NULL) {
+            giEntry = ItemTable_RetrievePtr(this->getItemId);
         }
         this->unk_84F = 1;
-        equipItem = giEntry.itemId;
-        equipNow = CVarGetInteger("gAskToEquip", 0) && giEntry.modIndex == MOD_NONE &&
+        equipItem = giEntry->itemId;
+        equipNow = CVarGetInteger("gAskToEquip", 0) && giEntry->modIndex == MOD_NONE &&
                     equipItem >= ITEM_SWORD_KOKIRI && equipItem <= ITEM_TUNIC_ZORA &&
                     CHECK_AGE_REQ_ITEM(equipItem);
 
-        Message_StartTextbox(play, giEntry.textId, &this->actor);
+        Message_StartTextbox(play, giEntry->textId, &this->actor);
         // RANDOTODO: Macro this boolean check.
-        if (!(giEntry.modIndex == MOD_RANDOMIZER && giEntry.itemId == RG_ICE_TRAP)) {
-            if (giEntry.modIndex == MOD_NONE) {
+        if (!(giEntry->modIndex == MOD_RANDOMIZER && giEntry->itemId == RG_ICE_TRAP)) {
+            if (giEntry->modIndex == MOD_NONE) {
                 // RANDOTOD: Move this into Item_Give() or some other more central location
-                if (giEntry.getItemId == GI_SWORD_BGS) {
+                if (giEntry->getItemId == GI_SWORD_BGS) {
                     gSaveContext.bgsFlag = true;
                     gSaveContext.swordHealth = 8;
                 }
-                Item_Give(play, giEntry.itemId);
+                Item_Give(play, giEntry->itemId);
             } else {
                 Randomizer_Item_Give(play, giEntry);
             }
@@ -12735,29 +12720,29 @@ s32 func_8084DFF4(PlayState* play, Player* this) {
         }
 
         // Use this if we do have a getItemEntry
-        if (giEntry.modIndex == MOD_NONE) {
+        if (giEntry->modIndex == MOD_NONE) {
             if (IS_RANDO) {
                 Audio_PlayFanfare_Rando(giEntry);
-            } else if (((giEntry.itemId >= ITEM_RUPEE_GREEN) && (giEntry.itemId <= ITEM_RUPEE_RED)) ||
-                        ((giEntry.itemId >= ITEM_RUPEE_PURPLE) && (giEntry.itemId <= ITEM_RUPEE_GOLD)) ||
-                        (giEntry.itemId == ITEM_HEART)) {
+            } else if (((giEntry->itemId >= ITEM_RUPEE_GREEN) && (giEntry->itemId <= ITEM_RUPEE_RED)) ||
+                        ((giEntry->itemId >= ITEM_RUPEE_PURPLE) && (giEntry->itemId <= ITEM_RUPEE_GOLD)) ||
+                        (giEntry->itemId == ITEM_HEART)) {
                 Audio_PlaySoundGeneral(NA_SE_SY_GET_BOXITEM, &D_801333D4, 4, &D_801333E0, &D_801333E0, &D_801333E8);
             } else {
-                if ((giEntry.itemId == ITEM_HEART_CONTAINER) ||
-                    ((giEntry.itemId == ITEM_HEART_PIECE_2) &&
+                if ((giEntry->itemId == ITEM_HEART_CONTAINER) ||
+                    ((giEntry->itemId == ITEM_HEART_PIECE_2) &&
                         ((gSaveContext.inventory.questItems & 0xF0000000) == 0x40000000))) {
                     temp1 = NA_BGM_HEART_GET | 0x900;
                 } else {
                     temp1 = temp2 =
-                        (giEntry.itemId == ITEM_HEART_PIECE_2) ? NA_BGM_SMALL_ITEM_GET : NA_BGM_ITEM_GET | 0x900;
+                        (giEntry->itemId == ITEM_HEART_PIECE_2) ? NA_BGM_SMALL_ITEM_GET : NA_BGM_ITEM_GET | 0x900;
                 }
                 Audio_PlayFanfare(temp1);
             }
-        } else if (giEntry.modIndex == MOD_RANDOMIZER) {
+        } else if (giEntry->modIndex == MOD_RANDOMIZER) {
             if (IS_RANDO) {
                 Audio_PlayFanfare_Rando(giEntry);
-            } else if (giEntry.itemId == RG_DOUBLE_DEFENSE || giEntry.itemId == RG_MAGIC_SINGLE ||
-                        giEntry.itemId == RG_MAGIC_DOUBLE) {
+            } else if (giEntry->itemId == RG_DOUBLE_DEFENSE || giEntry->itemId == RG_MAGIC_SINGLE ||
+                        giEntry->itemId == RG_MAGIC_DOUBLE) {
                 Audio_PlayFanfare(NA_BGM_HEART_GET | 0x900);
             } else {
                 // Just in case something weird happens with MOD_INDEX
@@ -12767,6 +12752,7 @@ s32 func_8084DFF4(PlayState* play, Player* this) {
             // Just in case something weird happens with modIndex.
             Audio_PlayFanfare(NA_BGM_ITEM_GET | 0x900);
         }
+
     }
     else if (equipNow && Message_ShouldAdvanceSilent(play) &&
              Message_GetState(&play->msgCtx) == TEXT_STATE_CHOICE) {
@@ -12805,18 +12791,18 @@ s32 func_8084DFF4(PlayState* play, Player* this) {
             // Set unk_862 to 0 early to not have the game draw non-custom colored models for a split second.
             // This unk is what the game normally uses to decide what item to draw when holding up an item above Link's head.
             // Only do this when the item actually has a custom draw function.
-            if (this->getItemEntry.drawFunc != NULL) {
+            if (ItemEventQueue_FrontGIEntry()->drawFunc != NULL) {
                 this->unk_862 = 0;
             }
 
-            if (this->getItemEntry.itemId == RG_ICE_TRAP && this->getItemEntry.modIndex == MOD_RANDOMIZER) {
+            if (ItemEventQueue_FrontGIEntry()->itemId == RG_ICE_TRAP && ItemEventQueue_FrontGIEntry()->modIndex == MOD_RANDOMIZER) {
                 this->unk_862 = 0;
                 gSaveContext.pendingIceTrapCount++;
                 Player_SetPendingFlag(this, play);
             }
 
             this->getItemId = GI_NONE;
-            this->getItemEntry = (GetItemEntry)GET_ITEM_NONE;
+            ItemEventQueue_PopFront();
         }
     }
 
@@ -12972,11 +12958,11 @@ void func_8084E6D4(Player* this, PlayState* play) {
         } else {
             func_80832DBC(this);
             if ((this->getItemId == GI_ICE_TRAP && !IS_RANDO) ||
-                (IS_RANDO && (this->getItemId == RG_ICE_TRAP || this->getItemEntry.getItemId == RG_ICE_TRAP))) {
+                (IS_RANDO && (this->getItemId == RG_ICE_TRAP || ItemEventQueue_FrontGIEntry()->getItemId == RG_ICE_TRAP))) {
                 this->stateFlags1 &= ~(PLAYER_STATE1_GETTING_ITEM | PLAYER_STATE1_ITEM_OVER_HEAD);
 
                 if ((this->getItemId != GI_ICE_TRAP && !IS_RANDO) ||
-                    (IS_RANDO && (this->getItemId != RG_ICE_TRAP || this->getItemEntry.getItemId != RG_ICE_TRAP))) {
+                    (IS_RANDO && (this->getItemId != RG_ICE_TRAP || ItemEventQueue_FrontGIEntry()->getItemId != RG_ICE_TRAP))) {
                     Actor_Spawn(&play->actorCtx, play, ACTOR_EN_CLEAR_TAG, this->actor.world.pos.x,
                                 this->actor.world.pos.y + 100.0f, this->actor.world.pos.z, 0, 0, 0, 0, true);
                     func_8083C0E8(this, play);
@@ -13343,13 +13329,13 @@ void func_8084F104(Player* this, PlayState* play) {
 
             func_80853148(play, targetActor);
         } else {
-            GetItemEntry giEntry = ItemTable_Retrieve(D_80854528[this->exchangeItemId - 1]);
+            GetItemEntry* giEntry = ItemTable_RetrievePtr(D_80854528[this->exchangeItemId - 1]);
 
             if (this->itemAction >= PLAYER_IA_ZELDAS_LETTER) {
-                if (giEntry.gi >= 0) {
-                    this->unk_862 = giEntry.gi;
+                if (giEntry->gi >= 0) {
+                    this->unk_862 = giEntry->gi;
                 } else {
-                    this->unk_862 = -giEntry.gi;
+                    this->unk_862 = -giEntry->gi;
                 }
             }
 

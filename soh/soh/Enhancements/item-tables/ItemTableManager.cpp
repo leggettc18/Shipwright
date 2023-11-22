@@ -30,6 +30,14 @@ GetItemEntry ItemTableManager::RetrieveItemEntry(uint16_t tableID, uint16_t getI
     } catch (std::out_of_range& oor) { return GET_ITEM_NONE; }
 }
 
+GetItemEntry* ItemTableManager::RetrieveItemEntryPtr(uint16_t tableID, uint16_t getItemID) {
+    try {
+        ItemTable* itemTable = RetrieveItemTable(tableID);
+        GetItemEntry* getItemEntry = &itemTable->at(getItemID);
+        return getItemEntry;
+    } catch (std::out_of_range& oor) { return nullptr; }
+}
+
 bool ItemTableManager::ClearItemTable(uint16_t tableID) {
     try {
         ItemTable* itemTable = RetrieveItemTable(tableID);

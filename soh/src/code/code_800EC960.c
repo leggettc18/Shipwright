@@ -3966,12 +3966,12 @@ void Audio_ResetSfxChannelState(void) {
 
 // Function to play "get-item" fanfares according to the type of item obtained (used in rando)
 // Longer fanfares for medallions/stones/songs are behind the Cvar
-void Audio_PlayFanfare_Rando(GetItemEntry getItem) {
+void Audio_PlayFanfare_Rando(GetItemEntry* getItem) {
     s32 temp1;
-    s16 getItemId = getItem.getItemId;
-    s16 itemId = getItem.itemId;
+    s16 getItemId = getItem->getItemId;
+    s16 itemId = getItem->itemId;
 
-    if (getItem.modIndex == MOD_NONE) {
+    if (getItem->modIndex == MOD_NONE) {
         if (((itemId >= ITEM_RUPEE_GREEN) && (itemId <= ITEM_RUPEE_GOLD)) || (itemId == ITEM_HEART)) {
             Audio_PlaySoundGeneral(NA_SE_SY_GET_BOXITEM, &D_801333D4, 4, &D_801333E0, &D_801333E0, &D_801333E8);
         } else {
@@ -4004,7 +4004,7 @@ void Audio_PlayFanfare_Rando(GetItemEntry getItem) {
             }
             Audio_PlayFanfare(temp1);
         } 
-    } else if (getItem.modIndex == MOD_RANDOMIZER) {
+    } else if (getItem->modIndex == MOD_RANDOMIZER) {
         if ((itemId >= RG_BOTTLE_WITH_RED_POTION && itemId <= RG_BOTTLE_WITH_BIG_POE) || 
             (itemId >= RG_DEKU_TREE_MAP && itemId <= RG_GANONS_CASTLE_SMALL_KEY)) {
             temp1 = NA_BGM_ITEM_GET | 0x900;

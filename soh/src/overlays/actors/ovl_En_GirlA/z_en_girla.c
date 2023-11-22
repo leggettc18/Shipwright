@@ -986,7 +986,7 @@ void EnGirlA_ItemGive_Randomizer(PlayState* play, EnGirlA* this) {
         }
         Item_Give(play, getItemEntry.itemId);
     } else if (getItemEntry.modIndex == MOD_RANDOMIZER && getItemEntry.getItemId != RG_ICE_TRAP) {
-        Randomizer_Item_Give(play, getItemEntry);
+        Randomizer_Item_Give(play, &getItemEntry);
     }
 
     Flags_SetRandomizerInf(shopItemIdentity.randomizerInf);

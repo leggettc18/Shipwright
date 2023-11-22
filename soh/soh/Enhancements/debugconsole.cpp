@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include "soh/OTRGlobals.h"
+#include "item-queue/ItemEvent.h"
 #include <soh/Enhancements/item-tables/ItemTableManager.h>
 #include "soh/Enhancements/game-interactor/GameInteractor.h"
 #include "soh/Enhancements/cosmetics/CosmeticsEditor.h"
@@ -18,6 +19,9 @@
 #include <Window.h>
 #include <Context.h>
 #include <ImGui/imgui_internal.h>
+
+#include "item-queue/ItemEventQueue.h"
+
 #undef PATH_HACK
 #undef Path
 
@@ -1320,6 +1324,20 @@ static bool SfxHandler(std::shared_ptr<LUS::Console> Console, const std::vector<
     return 0;
 }
 
+static bool QueueItemHandler(std::shared_ptr<LUS::Console> Console, const std::vector<std::string>& args, std::string* output) {
+    if (args.size() < 2) {
+        ERROR_MESSAGE("[SOH] Unexpected arguments passed");
+        return 1;
+    }
+    int id = std::stoi(args[1], nullptr, 10);
+    OTRGlobals::Instance->gItemEventQueue->AddItemEvent(ItemTableManager::Instance->RetrieveItemEntry(MOD_NONE, id), ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_None, FLAG_NONE, 0);
+    Player* player = GET_PLAYER(gPlayState);
+    // player->getItemId = id;
+    player->interactRangeActor = &player->actor;
+    player->getItemDirection = player->actor.shape.rot.y;
+    return 0;
+}
+
 void DebugConsole_Init(void) {
     // Console
     CMD_REGISTER("file_select", {FileSelectHandler, "Returns to the file select."});
@@ -1505,6 +1523,9 @@ void DebugConsole_Init(void) {
 
     CMD_REGISTER("sfx", {SfxHandler, "Change SFX.", {
             {"reset|randomize", LUS::ArgumentType::TEXT},
+    }});
+    CMD_REGISTER("queue_item", {QueueItemHandler, "Gives the player an Item.", {
+    {"id", LUS::ArgumentType::NUMBER},
     }});
 
     CVarSave();

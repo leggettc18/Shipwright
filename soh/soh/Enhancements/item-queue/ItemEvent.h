@@ -3,6 +3,9 @@
 
 #include <cstdint>
 #include <variant>
+
+#include "z64player.h"
+#include "soh/Enhancements/item-tables/ItemTableTypes.h"
 #include "soh/Enhancements/randomizer/randomizerTypes.h"
 
 enum class ItemObtainMethod {
@@ -32,14 +35,17 @@ enum ItemGetUIFlags {
 class ItemEvent {
 public:
     ItemEvent();
-    ItemEvent(GetItemID itemId, ItemObtainMethod method, uint8_t itemGetUIFlags, uint32_t quantity = 1);
-    ItemEvent(RandomizerGet rgId, ItemObtainMethod method, uint8_t itemGetUIFlags, uint32_t quantity = 1);
+    ItemEvent(const GetItemEntry& giEntry, ItemObtainMethod method, uint8_t itemGetUIFlags, FlagType flagType, int16_t flag);
+    bool HasEntry(const GetItemEntry& giEntry) const;
+    GetItemEntry* RetrieveGetItemEntry();
+    void SetFlag() const;
 
 private:
-    std::variant<GetItemID, RandomizerGet> mItemId;
+    GetItemEntry mGiEntry;
     ItemObtainMethod mMethod;
     uint8_t mItemGetUIFlags;
-    uint32_t mQuantity;
+    FlagType mFlagType;
+    int16_t mFlag;
 };
 
 

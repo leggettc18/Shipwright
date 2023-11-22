@@ -1,7 +1,9 @@
 #ifndef ITEMEVENTQUEUE_H
 #define ITEMEVENTQUEUE_H
-#ifdef __cplusplus
+
 #include "ItemEvent.h"
+
+#ifdef __cplusplus
 
 #include <deque>
 

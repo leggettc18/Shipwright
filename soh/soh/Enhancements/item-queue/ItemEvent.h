@@ -1,8 +1,9 @@
 #ifndef ITEMEVENT_H
 #define ITEMEVENT_H
 
+#ifdef __cplusplus
+
 #include <cstdint>
-#include <variant>
 
 #include "z64player.h"
 #include "soh/Enhancements/item-tables/ItemTableTypes.h"
@@ -18,6 +19,8 @@ enum class ItemObtainMethod {
     OTHER_PLAYERS /** For items obtained from other players, such as in a multiworld run */
 };
 
+#endif
+
 /**
  * @brief Flags describing how the item give event should be displayed in-game. These can be combined with
  * `|`, for instance `ItemGet_MessageBox | ItemGet_OverHead` will show the item over the player's head and display a
@@ -31,6 +34,8 @@ enum ItemGetUIFlags {
     ItemGet_OverHead = 1 << 2, /** Display the item over the player's head. */
     ItemGet_FullAnimation = 1 << 3, /** Play the full item get animation. */
 };
+
+#ifdef __cplusplus
 
 class ItemEvent {
 public:
@@ -48,6 +53,5 @@ private:
     int16_t mFlag;
 };
 
-
-
+#endif
 #endif //ITEMEVENT_H

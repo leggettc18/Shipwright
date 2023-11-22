@@ -1,6 +1,16 @@
 #pragma once
+
+#ifdef __cplusplus
 #include <string>
 #include <stdint.h>
+
+extern "C" {
+#endif
+
+    const char* SohUtils_GetItemName(int32_t item);
+
+#ifdef __cplusplus
+}
 
 namespace SohUtils {
     const std::string& GetSceneName(int32_t scene);
@@ -13,3 +23,5 @@ namespace SohUtils {
     // Only up to size-1 characters are copied from the source string
     void CopyStringToCharArray(char* destination, std::string source, size_t size);
 } // namespace SohUtils
+
+#endif

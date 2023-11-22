@@ -1330,11 +1330,8 @@ static bool QueueItemHandler(std::shared_ptr<LUS::Console> Console, const std::v
         return 1;
     }
     int id = std::stoi(args[1], nullptr, 10);
-    OTRGlobals::Instance->gItemEventQueue->AddItemEvent(ItemTableManager::Instance->RetrieveItemEntry(MOD_NONE, id), ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_None, FLAG_NONE, 0);
-    Player* player = GET_PLAYER(gPlayState);
-    // player->getItemId = id;
-    player->interactRangeActor = &player->actor;
-    player->getItemDirection = player->actor.shape.rot.y;
+    OTRGlobals::Instance->gItemEventQueue->AddItemEvent(ItemTableManager::Instance->RetrieveItemEntry(MOD_NONE, id), ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_OverlayText, FLAG_NONE, 0);
+
     return 0;
 }
 

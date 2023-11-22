@@ -318,3 +318,8 @@ void SohUtils::CopyStringToCharArray(char* destination, std::string source, size
     strncpy(destination, source.c_str(), size - 1);
     destination[size - 1] = '\0';
 }
+
+const char* SohUtils_GetItemName(int32_t item) {
+    return itemNames[item].c_str();
+}
+

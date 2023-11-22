@@ -31,6 +31,7 @@
 #include "soh/Enhancements/randomizer/randomizer_grotto.h"
 #include "soh/frame_interpolation.h"
 #include "soh/Enhancements/item-queue/ItemEventQueue.h"
+#include "soh/util.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -15255,4 +15256,33 @@ void func_80853148(PlayState* play, Actor* actor) {
         this->naviActor->flags |= ACTOR_FLAG_PLAYER_TALKED_TO;
         func_80835EA4(play, 0xB);
     }
+}
+
+void Player_ObtainItemFromQueue(Player* this, PlayState* play) {
+    GetItemEntry* giEntry = ItemEventQueue_FrontGIEntry();
+    if (giEntry == NULL || this->getItemId > GI_NONE) {
+        // Do nothing if no item is queued or if we should
+        // be handling an authentic item first.
+        return;
+    }
+    if (ItemEventQueue_FrontHasFlags(ItemGet_OverlayText)) {
+        char buf[1024];
+        snprintf(buf, sizeof(buf) / sizeof(*(buf)), "Obtained %s", SohUtils_GetItemName(giEntry->itemId));
+        Overlay_DisplayText_Seconds(5, buf);
+    }
+    if (ItemEventQueue_FrontHasFlags(ItemGet_FullAnimation)) {
+        this->stateFlags1 |= PLAYER_STATE1_GETTING_ITEM | PLAYER_STATE1_ITEM_OVER_HEAD | PLAYER_STATE1_IN_CUTSCENE;
+        // func_80832224 but for ItemEventQueue
+    } else {
+        if (giEntry->modIndex == MOD_NONE) {
+            Item_Give(play, giEntry->itemId);
+        } else {
+            Randomizer_Item_Give(play, giEntry);
+        }
+        if (ItemEventQueue_FrontHasFlags(ItemGet_OverHead)) {
+            // func_8083E4C4 but for ItemEventQueue
+        }
+        ItemEventQueue_PopFront();
+    }
+
 }

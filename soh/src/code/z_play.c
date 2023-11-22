@@ -1448,6 +1448,7 @@ skip:
         GivePlayerRandoRewardRequiem(play, RC_SHEIK_AT_COLOSSUS);
         GivePlayerRandoRewardMasterSword(play, RC_TOT_MASTER_SWORD);
     }
+    Player_ObtainItemFromQueue(GET_PLAYER(play), play);
 }
 
 void Play_DrawOverlayElements(PlayState* play) {

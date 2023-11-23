@@ -1330,7 +1330,7 @@ static bool QueueItemHandler(std::shared_ptr<LUS::Console> Console, const std::v
         return 1;
     }
     int id = std::stoi(args[1], nullptr, 10);
-    OTRGlobals::Instance->gItemEventQueue->AddItemEvent(ItemTableManager::Instance->RetrieveItemEntry(MOD_NONE, id), ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_OverlayText, FLAG_NONE, 0);
+    OTRGlobals::Instance->gItemEventQueue->AddItemEvent(ItemTableManager::Instance->RetrieveItemEntry(MOD_NONE, id), ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_OverlayText | ItemGet_OverHead, FLAG_NONE, 0);
 
     return 0;
 }

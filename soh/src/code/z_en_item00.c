@@ -15,6 +15,7 @@ void func_8001DFC8(EnItem00* this, PlayState* play);
 void func_8001E1C8(EnItem00* this, PlayState* play);
 void func_8001E304(EnItem00* this, PlayState* play);
 void func_8001E5C8(EnItem00* this, PlayState* play);
+void EnItem00_ShowModel(EnItem00* this, PlayState* play);
 
 void EnItem00_DrawRupee(EnItem00* this, PlayState* play);
 void EnItem00_DrawCollectible(EnItem00* this, PlayState* play);
@@ -349,6 +350,7 @@ void EnItem00_Init(Actor* thisx, PlayState* play) {
     s32 getItemId = GI_NONE;
     this->randoGiEntry = (GetItemEntry)GET_ITEM_NONE;
     s16 spawnParam8000 = this->actor.params & 0x8000;
+    s16 spawnParam4000 = this->actor.params & 0x4000;
     s32 pad1;
 
     this->ogParams = this->actor.params;
@@ -506,6 +508,11 @@ void EnItem00_Init(Actor* thisx, PlayState* play) {
     this->actor.speedXZ = 0.0f;
     this->actor.velocity.y = 0.0f;
     this->actor.gravity = 0.0f;
+
+    if (spawnParam4000) {
+        EnItem00_SetupAction(this, EnItem00_ShowModel);
+        return;
+    }
 
     switch (this->actor.params) {
         case ITEM00_RUPEE_GREEN:
@@ -763,6 +770,20 @@ void func_8001E5C8(EnItem00* this, PlayState* play) {
     }
 }
 
+void EnItem00_ShowModel(EnItem00* this, PlayState* play) {
+    Player* player = GET_PLAYER(play);
+    if (this->unk_15A == 0) {
+        Actor_Kill(&this->actor);
+        return;
+    }
+    this->actor.world.pos = player->actor.world.pos;
+    this->actor.world.pos.y += 40.0f + Math_SinS(this->unk_15A * 15000) * (this->unk_15A * 0.3f);
+    this->actor.shape.rot.y = int16_t(-32767) + play->mainCamera.camDir.y;
+    if (LINK_IS_ADULT) {
+        this->actor.world.pos.y += 20.0f;
+    }
+}
+
 // The BSS in the function acted weird in the past. It is matching now but might cause issues in the future
 void EnItem00_Update(Actor* thisx, PlayState* play) {
     static u32 D_80157D90;
@@ -1004,6 +1025,13 @@ void EnItem00_Update(Actor* thisx, PlayState* play) {
 void EnItem00_Draw(Actor* thisx, PlayState* play) {
     EnItem00* this = (EnItem00*)thisx;
     f32 mtxScale;
+
+    if (this->ogParams & 0x4000) {
+        mtxScale = 25.0f;
+        Matrix_Scale(mtxScale, mtxScale, mtxScale, MTXMODE_APPLY);
+        GetItem_Draw(play, this->actor.params);
+        return;
+    }
 
     if (!(this->unk_156 & this->unk_158)) {
         switch (this->actor.params) {
@@ -1553,6 +1581,12 @@ s16 func_8001F404(s16 dropId) {
     }
 
     return dropId;
+}
+
+EnItem00* Item_ShowModel(PlayState* play, Vec3f* spawnPos, s16 params) {
+    EnItem00* spawnedActor = (EnItem00*)Actor_Spawn(&play->actorCtx, play, ACTOR_EN_ITEM00, spawnPos->x, spawnPos->y,
+        spawnPos->z, 0, 0, 0, params, true);
+    return spawnedActor;
 }
 
 // External functions used by other actors to drop collectibles, which usually results in spawning an En_Item00 actor.

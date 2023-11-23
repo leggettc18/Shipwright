@@ -15280,7 +15280,8 @@ void Player_ObtainItemFromQueue(Player* this, PlayState* play) {
             Randomizer_Item_Give(play, giEntry);
         }
         if (ItemEventQueue_FrontHasFlags(ItemGet_OverHead)) {
-            // func_8083E4C4 but for ItemEventQueue
+            s32 sp1C = giEntry->gid;
+            Item_ShowModel(play, &this->actor.world.pos, sp1C | 0xC000);
         }
         ItemEventQueue_PopFront();
     }

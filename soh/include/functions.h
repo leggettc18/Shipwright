@@ -180,6 +180,7 @@ void osViSetYScale(f32 scale);
 void osViSetXScale(f32 value);
 void __osSetWatchLo(u32);
 
+EnItem00* Item_ShowModel(PlayState* play, Vec3f* spawnPos, s16 params);
 EnItem00* Item_DropCollectible(PlayState* play, Vec3f* spawnPos, s16 params);
 EnItem00* Item_DropCollectible2(PlayState* play, Vec3f* spawnPos, s16 params);
 void EnItem00_CustomItemsParticles(Actor* Parent, PlayState* play, GetItemEntry giEntry);

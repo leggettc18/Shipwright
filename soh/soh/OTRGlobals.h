@@ -151,6 +151,7 @@ uint8_t Randomizer_IsSpoilerLoaded();
 void Randomizer_SetSpoilerLoaded(bool spoilerLoaded);
 uint8_t Randomizer_IsPlandoLoaded();
 void Randomizer_SetPlandoLoaded(bool plandoLoaded);
+const char* Randomizer_GetItemName(int16_t randomizerGet);
 int CustomMessage_RetrieveIfExists(PlayState* play);
 void Overlay_DisplayText(float duration, const char* text);
 void Overlay_DisplayText_Seconds(int seconds, const char* text);

@@ -2054,6 +2054,19 @@ extern "C" void Randomizer_SetPlandoLoaded(bool plandoLoaded) {
     OTRGlobals::Instance->gRandoContext->SetPlandoLoaded(plandoLoaded);
 }
 
+extern "C" const char* Randomizer_GetItemName(int16_t randomizerGet) {
+    const Text text = Rando::StaticData::RetrieveItem(static_cast<RandomizerGet>(randomizerGet)).GetName();
+    switch (CVarGetInteger("gLanguage", LANGUAGE_ENG)) {
+        case LANGUAGE_ENG:
+            return text.GetEnglish().c_str();
+        case LANGUAGE_FRA:
+            return text.GetFrench().c_str();
+        case LANGUAGE_GER:
+        default:
+            return text.GetEnglish().c_str();
+    }
+}
+
 CustomMessage Randomizer_GetCustomGetItemMessage(Player* player) {
     s16 giid;
     if (player->getItemEntry.objectId != OBJECT_INVALID) {

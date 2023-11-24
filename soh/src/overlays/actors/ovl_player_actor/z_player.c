@@ -15267,7 +15267,11 @@ void Player_ObtainItemFromQueue(Player* this, PlayState* play) {
     }
     if (ItemEventQueue_FrontHasFlags(ItemGet_OverlayText)) {
         char buf[1024];
-        snprintf(buf, sizeof(buf) / sizeof(*(buf)), "Obtained %s", SohUtils_GetItemName(giEntry->itemId));
+        if (giEntry->modIndex == MOD_NONE) {
+            snprintf(buf, sizeof(buf) / sizeof(*(buf)), "Obtained %s", SohUtils_GetItemName(giEntry->itemId));
+        } else if (giEntry->modIndex == MOD_RANDOMIZER) {
+            snprintf(buf, sizeof(buf)/ sizeof(*(buf)), "Obtained %s", Randomizer_GetItemName(giEntry->itemId));
+        }
         Overlay_DisplayText_Seconds(5, buf);
     }
     if (ItemEventQueue_FrontHasFlags(ItemGet_FullAnimation)) {
@@ -15282,6 +15286,7 @@ void Player_ObtainItemFromQueue(Player* this, PlayState* play) {
         if (ItemEventQueue_FrontHasFlags(ItemGet_OverHead)) {
             s32 sp1C = giEntry->gid;
             Item_ShowModel(play, &this->actor.world.pos, sp1C | 0xC000);
+            func_80078884(NA_SE_SY_GET_ITEM);
         }
         ItemEventQueue_PopFront();
     }

@@ -1325,12 +1325,33 @@ static bool SfxHandler(std::shared_ptr<LUS::Console> Console, const std::vector<
 }
 
 static bool QueueItemHandler(std::shared_ptr<LUS::Console> Console, const std::vector<std::string>& args, std::string* output) {
+    std::string tableId = "vanilla";
+    int itemIdIndex = 2;
     if (args.size() < 2) {
         ERROR_MESSAGE("[SOH] Unexpected arguments passed");
         return 1;
     }
-    int id = std::stoi(args[1], nullptr, 10);
-    OTRGlobals::Instance->gItemEventQueue->AddItemEvent(ItemTableManager::Instance->RetrieveItemEntry(MOD_NONE, id), ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_OverlayText | ItemGet_OverHead, FLAG_NONE, 0);
+    if (args.size() < 3) {
+        itemIdIndex = 1;
+    } else {
+        tableId = args[1];
+    }
+    const int id = std::stoi(args[itemIdIndex], nullptr, 10);
+    if (tableId == "vanilla") {
+        OTRGlobals::Instance->gItemEventQueue->AddItemEvent(
+            ItemTableManager::Instance->RetrieveItemEntry(MOD_NONE, id),
+            ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_OverlayText | ItemGet_OverHead,
+            FLAG_NONE,
+            0
+        );
+    } else if (tableId == "randomizer") {
+        OTRGlobals::Instance->gItemEventQueue->AddItemEvent(
+            Rando::StaticData::RetrieveItem(static_cast<RandomizerGet>(id)).GetGIEntry_Copy(),
+            ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_OverlayText | ItemGet_OverHead,
+            FLAG_NONE,
+            0
+        );
+    }
 
     return 0;
 }
@@ -1522,7 +1543,8 @@ void DebugConsole_Init(void) {
             {"reset|randomize", LUS::ArgumentType::TEXT},
     }});
     CMD_REGISTER("queue_item", {QueueItemHandler, "Gives the player an Item.", {
-    {"id", LUS::ArgumentType::NUMBER},
+        {"vanilla|randomizer", LUS::ArgumentType::TEXT, true},
+        {"id", LUS::ArgumentType::NUMBER},
     }});
 
     CVarSave();

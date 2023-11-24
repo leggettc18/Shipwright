@@ -2,6 +2,7 @@
 #include "overlays/actors/ovl_En_Elf/z_en_elf.h"
 #include "objects/gameplay_keep/gameplay_keep.h"
 #include "overlays/effects/ovl_Effect_Ss_Dead_Sound/z_eff_ss_dead_sound.h"
+#include "soh/Enhancements/item-queue/ItemEventQueue.h"
 #include "textures/icon_item_static/icon_item_static.h"
 
 #define FLAGS 0
@@ -511,6 +512,7 @@ void EnItem00_Init(Actor* thisx, PlayState* play) {
 
     if (spawnParam4000) {
         EnItem00_SetupAction(this, EnItem00_ShowModel);
+        this->randoGiEntry = *ItemEventQueue_FrontGIEntry();
         return;
     }
 
@@ -777,8 +779,10 @@ void EnItem00_ShowModel(EnItem00* this, PlayState* play) {
         return;
     }
     this->actor.world.pos = player->actor.world.pos;
+    // bouce up and down aboe player's head.
     this->actor.world.pos.y += 40.0f + Math_SinS(this->unk_15A * 15000) * (this->unk_15A * 0.3f);
-    this->actor.shape.rot.y = int16_t(-32767) + play->mainCamera.camDir.y;
+    // Ensures the rendered item above player's head is facing the camera.
+    this->actor.shape.rot.y = (int16_t)-32767 + play->mainCamera.camDir.y;
     if (LINK_IS_ADULT) {
         this->actor.world.pos.y += 20.0f;
     }
@@ -1029,7 +1033,7 @@ void EnItem00_Draw(Actor* thisx, PlayState* play) {
     if (this->ogParams & 0x4000) {
         mtxScale = 25.0f;
         Matrix_Scale(mtxScale, mtxScale, mtxScale, MTXMODE_APPLY);
-        GetItem_Draw(play, this->actor.params);
+        GetItemEntry_Draw(play, this->randoGiEntry);
         return;
     }
 

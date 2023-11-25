@@ -12792,21 +12792,7 @@ s32 func_8084DFF4(PlayState* play, Player* this) {
                 func_80852FFC(play, NULL, 8);
             }
 
-            // Set unk_862 to 0 early to not have the game draw non-custom colored models for a split second.
-            // This unk is what the game normally uses to decide what item to draw when holding up an item above Link's head.
-            // Only do this when the item actually has a custom draw function.
-            if (ItemEventQueue_FrontGIEntry()->drawFunc != NULL) {
-                this->unk_862 = 0;
-            }
-
-            if (ItemEventQueue_FrontGIEntry()->itemId == RG_ICE_TRAP && ItemEventQueue_FrontGIEntry()->modIndex == MOD_RANDOMIZER) {
-                this->unk_862 = 0;
-                gSaveContext.pendingIceTrapCount++;
-                Player_SetPendingFlag(this, play);
-            }
-
             this->getItemId = GI_NONE;
-            ItemEventQueue_PopFront();
         }
     }
 
@@ -15392,10 +15378,13 @@ void Player_ObtainItemFromQueue_HandleFullAnimation(Player* this, PlayState* pla
         play->msgCtx.msgMode = MSGMODE_TEXT_DONE;
     } else {
         if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+            // Set unk_862 to 0 early to not have the game draw non-custom colored models for a split second.
+            // This unk is what the game normally uses to decide what item to draw when holding up an item above Link's head.
+            // Only do this when the item actually has a custom draw function.
             if (giEntry->drawFunc != NULL) {
                 this->unk_862 = 0;
             }
-            if (giEntry->itemId == RG_ICE_TRAP && giEntry->modIndex) {
+            if (giEntry->itemId == RG_ICE_TRAP && giEntry->modIndex == MOD_RANDOMIZER) {
                 this->unk_862 = 0;
                 gSaveContext.pendingIceTrapCount++;
             }

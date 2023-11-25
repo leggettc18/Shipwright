@@ -11,6 +11,8 @@
 
 #include <stdlib.h>
 
+#include "soh/Enhancements/item-queue/ItemEventQueue.h"
+
 typedef struct {
     /* 0x00 */ u8 flag;
     /* 0x02 */ u16 textId;
@@ -1525,12 +1527,34 @@ void Player_DrawGetItemImpl(PlayState* play, Player* this, Vec3f* refPos, s32 dr
     Matrix_RotateZYX(0, play->gameplayFrames * 1000, 0, MTXMODE_APPLY);
     Matrix_Scale(0.2f, 0.2f, 0.2f, MTXMODE_APPLY);
 
-    if (this->getItemEntry.modIndex == MOD_RANDOMIZER && this->getItemEntry.getItemId == RG_ICE_TRAP) {
+    GetItem_Draw(play, drawIdPlusOne - 1);
+
+    CLOSE_DISPS(play->state.gfxCtx);
+}
+
+void Player_DrawGetItemFromQueue(PlayState* play, Player* this, Vec3f* refPos, s32 drawIdPlusOne) {
+    f32 height = (this->exchangeItemId != EXCH_ITEM_NONE) ? 6.0f : 14.0f;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    gSegments[6] = VIRTUAL_TO_PHYSICAL(this->giObjectSegment);
+
+    gSPSegment(POLY_OPA_DISP++, 0x06, this->giObjectSegment);
+    gSPSegment(POLY_XLU_DISP++, 0x06, this->giObjectSegment);
+
+    Matrix_Translate(refPos->x + (3.3f * Math_SinS(this->actor.shape.rot.y)), refPos->y + height,
+                     refPos->z + ((3.3f + (IREG(90) / 10.0f)) * Math_CosS(this->actor.shape.rot.y)), MTXMODE_NEW);
+    Matrix_RotateZYX(0, play->gameplayFrames * 1000, 0, MTXMODE_APPLY);
+    Matrix_Scale(0.2f, 0.2f, 0.2f, MTXMODE_APPLY);
+    // If there is currently a queued ItemEvent, we should draw that item.
+    const GetItemEntry* giEntry = ItemEventQueue_FrontGIEntry();
+
+    if (giEntry->modIndex == MOD_RANDOMIZER && giEntry->getItemId == RG_ICE_TRAP) {
         Player_DrawGetItemIceTrap(play, this, refPos, drawIdPlusOne, height);
-    } else if (this->getItemEntry.modIndex == MOD_RANDOMIZER && this->getItemEntry.getItemId == RG_TRIFORCE_PIECE) {
+    } else if (giEntry->modIndex == MOD_RANDOMIZER && giEntry->getItemId == RG_TRIFORCE_PIECE) {
         Randomizer_DrawTriforcePieceGI(play, this->getItemEntry);
-    } else if (this->getItemEntry.drawFunc != NULL) {
-        this->getItemEntry.drawFunc(play, &this->getItemEntry);
+    } else if (giEntry->drawFunc != NULL) {
+        giEntry->drawFunc(play, giEntry);
     } else {
         GetItem_Draw(play, drawIdPlusOne - 1);
     }
@@ -1542,7 +1566,13 @@ void Player_DrawGetItem(PlayState* play, Player* this) {
     //if (!this->giObjectLoading || !osRecvMesg(&this->giObjectLoadQueue, NULL, OS_MESG_NOBLOCK)) // OTRTODO: Do something about osRecvMesg here...
     {
         this->giObjectLoading = false;
-        Player_DrawGetItemImpl(play, this, &sGetItemRefPos, ABS(this->unk_862));
+        // If there is a queued ItemEvent and we don't have an item to give via authentic means,
+        // draw an item from the ItemEventQueue.
+        if (this->getItemId == GI_NONE && ItemEventQueue_FrontGIEntry() != NULL) {
+            Player_DrawGetItemFromQueue(play, this, &sGetItemRefPos, ABS(this->unk_862));
+        } else {
+            Player_DrawGetItemImpl(play, this, &sGetItemRefPos, ABS(this->unk_862));
+        }
     }
 }
 

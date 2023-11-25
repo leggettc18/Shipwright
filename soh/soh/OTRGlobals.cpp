@@ -2068,12 +2068,7 @@ extern "C" const char* Randomizer_GetItemName(int16_t randomizerGet) {
 }
 
 CustomMessage Randomizer_GetCustomGetItemMessage(Player* player) {
-    s16 giid;
-    if (player->getItemEntry.objectId != OBJECT_INVALID) {
-        giid = player->getItemEntry.getItemId;
-    } else {
-        giid = player->getItemId;
-    }
+    s16 giid = OTRGlobals::Instance->gItemEventQueue->Front().RetrieveGetItemEntry()->getItemId;
     const CustomMessage getItemText = CustomMessageManager::Instance->RetrieveMessage(Randomizer::getItemMessageTableID, giid);
     return getItemText;
 }
@@ -2089,13 +2084,13 @@ extern "C" int CustomMessage_RetrieveIfExists(PlayState* play) {
     if (IS_RANDO) {
         Player* player = GET_PLAYER(play);
         if (textId == TEXT_RANDOMIZER_CUSTOM_ITEM) {
-            if (player->getItemEntry.getItemId == RG_ICE_TRAP) {
+            if (OTRGlobals::Instance->gItemEventQueue->Front().RetrieveGetItemEntry()->getItemId == RG_ICE_TRAP) {
                 u16 iceTrapTextId = Random(0, NUM_ICE_TRAP_MESSAGES);
                 messageEntry = CustomMessageManager::Instance->RetrieveMessage(Randomizer::IceTrapRandoMessageTableID, iceTrapTextId);
                 if (CVarGetInteger("gLetItSnow", 0)) {
                     messageEntry = CustomMessageManager::Instance->RetrieveMessage(Randomizer::IceTrapRandoMessageTableID, NUM_ICE_TRAP_MESSAGES + 1);
                 }
-            } else if (player->getItemEntry.getItemId == RG_TRIFORCE_PIECE) {
+            } else if (OTRGlobals::Instance->gItemEventQueue->Front().RetrieveGetItemEntry()->getItemId == RG_TRIFORCE_PIECE) {
                 messageEntry = Randomizer::GetTriforcePieceMessage();
             } else {
                 messageEntry = Randomizer_GetCustomGetItemMessage(player);

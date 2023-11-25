@@ -12,6 +12,8 @@
 #include <fstream>
 #include <spdlog/spdlog.h>
 
+#include "soh/Enhancements/item-queue/ItemEventQueue.h"
+
 namespace Rando {
 std::weak_ptr<Context> Context::mContext;
 
@@ -272,6 +274,55 @@ GetItemEntry Context::GetFinalGIEntry(RandomizerCheck rc, bool checkObtainabilit
         giEntry.drawFunc = fakeGiEntry->drawFunc;
     }
     return giEntry;
+}
+
+void Context::QueueFinalGIEntry(RandomizerCheck rc, bool checkObtainability, GetItemID ogItemId) {
+    GetItemEntry giEntry = GetFinalGIEntry(rc, checkObtainability, ogItemId);
+    SpoilerCollectionCheck collectionCheck = StaticData::GetLocation(rc)->GetCollectionCheck();
+    FlagType flagType = FLAG_NONE;
+    uint8_t flag = collectionCheck.flag;
+    ItemObtainMethod method = OBTAIN_FROM_NPC;
+    switch (collectionCheck.type) {
+        case SPOILER_CHK_COW:
+        case SPOILER_CHK_MERCHANT:
+        case SPOILER_CHK_SHOP_ITEM:
+        case SPOILER_CHK_SCRUB:
+        case SPOILER_CHK_RANDOMIZER_INF:
+        case SPOILER_CHK_MASTER_SWORD:
+            flagType = FLAG_RANDOMIZER_INF;
+            flag = OTRGlobals::Instance->gRandomizer->GetRandomizerInfFromCheck(rc);
+            break;
+        case SPOILER_CHK_CHEST:
+            method = OBTAIN_FROM_CHEST;
+            flagType = FLAG_SCENE_TREASURE;
+            break;
+        case SPOILER_CHK_COLLECTABLE:
+            method = OBTAIN_FROM_FREESTANDING;
+            flagType = FLAG_SCENE_COLLECTIBLE;
+            break;
+        case SPOILER_CHK_EVENT_CHK_INF:
+            flagType = FLAG_EVENT_CHECK_INF;
+            break;
+        case SPOILER_CHK_GOLD_SKULLTULA:
+            method = OBTAIN_FROM_SKULLTULA;
+            flagType = FLAG_GS_TOKEN;
+            break;
+        case SPOILER_CHK_INF_TABLE:
+            flagType = FLAG_INF_TABLE;
+            break;
+        case SPOILER_CHK_ITEM_GET_INF:
+            flagType = FLAG_ITEM_GET_INF;
+            break;
+        case SPOILER_CHK_MAGIC_BEANS:
+            break;
+        case SPOILER_CHK_GRAVEDIGGER:
+            flagType = FLAG_SCENE_COLLECTIBLE;
+            break;
+        default:
+            break;
+    }
+
+    OTRGlobals::Instance->gItemEventQueue->AddItemEvent(giEntry, method, ItemGet_FullAnimation, flagType, flag);
 }
 
 std::string sanitize(std::string stringValue) {

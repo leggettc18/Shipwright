@@ -2014,6 +2014,10 @@ extern "C" GetItemEntry Randomizer_GetItemFromKnownCheck(RandomizerCheck randomi
     return OTRGlobals::Instance->gRandomizer->GetItemFromKnownCheck(randomizerCheck, ogId);
 }
 
+extern "C" void Randomizer_QueueItemEventFromKnownCheck(RandomizerCheck randomizerCheck, GetItemID ogId) {
+    OTRGlobals::Instance->gRandoContext->QueueFinalGIEntry(randomizerCheck, true, ogId);
+}
+
 extern "C" GetItemEntry Randomizer_GetItemFromKnownCheckWithoutObtainabilityCheck(RandomizerCheck randomizerCheck, GetItemID ogId) {
     return OTRGlobals::Instance->gRandomizer->GetItemFromKnownCheck(randomizerCheck, ogId, false);
 }

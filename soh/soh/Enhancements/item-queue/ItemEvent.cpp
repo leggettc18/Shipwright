@@ -5,7 +5,7 @@
 #include "soh/Enhancements/item-tables/ItemTableManager.h"
 
 
-ItemEvent::ItemEvent() : mGiEntry(GET_ITEM_NONE), mMethod(ItemObtainMethod::DROP), mItemGetUIFlags(ItemGet_None), mFlagType(FLAG_NONE), mFlag(0) {}
+ItemEvent::ItemEvent() : mGiEntry(GET_ITEM_NONE), mMethod(OBTAIN_FROM_DROP), mItemGetUIFlags(ItemGet_None), mFlagType(FLAG_NONE), mFlag(0) {}
 
 const GetItemEntry* ItemEvent::RetrieveGetItemEntry() const {
     return &mGiEntry;

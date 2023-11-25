@@ -233,13 +233,6 @@ void EnCow_MoveForRandomizer(EnCow* this, PlayState* play) {
     }
 }
 
-void EnCow_SetCowMilked(EnCow* this, PlayState* play) {
-    CowIdentity cowIdentity = Randomizer_IdentifyCow(play->sceneNum, this->actor.world.pos.x, this->actor.world.pos.z);
-    Player* player = GET_PLAYER(play);
-    player->pendingFlag.flagID = cowIdentity.randomizerInf;
-    player->pendingFlag.flagType = FLAG_RANDOMIZER_INF;
-}
-
 void func_809DF778(EnCow* this, PlayState* play) {
     if (Actor_HasParent(&this->actor, play)) {
         this->actor.parent = NULL;
@@ -287,15 +280,9 @@ bool EnCow_HasBeenMilked(EnCow* this, PlayState* play) {
 }
 
 void EnCow_GivePlayerRandomizedItem(EnCow* this, PlayState* play) {
-    if (!EnCow_HasBeenMilked(this, play)) {
-        CowIdentity cowIdentity = Randomizer_IdentifyCow(play->sceneNum, this->actor.world.pos.x, this->actor.world.pos.z);
-        GetItemEntry itemEntry = Randomizer_GetItemFromKnownCheck(cowIdentity.randomizerCheck, GI_MILK);
-        GiveItemEntryFromActor(&this->actor, play, itemEntry, 10000.0f, 100.0f);
-    } else {
-        // once we've gotten the rando reward from the cow,
-        // return them to the their default action function
-        this->actionFunc = func_809DF96C;
-    }
+    CowIdentity cowIdentity = Randomizer_IdentifyCow(play->sceneNum, this->actor.world.pos.x, this->actor.world.pos.z);
+    Randomizer_QueueItemEventFromKnownCheck(cowIdentity.randomizerCheck, GI_MILK);
+    this->actionFunc = func_809DF96C;
 }
 
 void func_809DF96C(EnCow* this, PlayState* play) {
@@ -314,7 +301,6 @@ void func_809DF96C(EnCow* this, PlayState* play) {
                     if (IS_RANDO &&
                         Randomizer_GetSettingValue(RSK_SHUFFLE_COWS) &&
                         !EnCow_HasBeenMilked(this, play)) {
-                        EnCow_SetCowMilked(this, play);
                         // setting the ocarina mode here prevents intermittent issues
                         // with the item get not triggering until walking away
                         play->msgCtx.ocarinaMode = OCARINA_MODE_00;

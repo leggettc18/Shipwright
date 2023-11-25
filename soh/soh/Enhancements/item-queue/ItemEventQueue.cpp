@@ -21,6 +21,11 @@ extern "C" void ItemEventQueue_PopFront() {
     OTRGlobals::Instance->gItemEventQueue->PopFront();
 }
 
+extern "C" void ItemEventQueue_AddItem(GetItemEntry giEntry, ItemObtainMethod method, FlagType flagType, int16_t flag) {
+    // TODO: Set different ItemGetUIFlags according to settings.
+    OTRGlobals::Instance->gItemEventQueue->AddItemEvent(giEntry, method, ItemGet_FullAnimation, flagType, flag);
+}
+
 bool ItemEventQueue::Empty() const {
     return mQueue.empty();
 }

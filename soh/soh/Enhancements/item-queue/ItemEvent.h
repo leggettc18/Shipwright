@@ -9,17 +9,17 @@
 #include "soh/Enhancements/item-tables/ItemTableTypes.h"
 #include "soh/Enhancements/randomizer/randomizerTypes.h"
 
-enum class ItemObtainMethod {
-    DROP, /** For items dropped from pots, enemies, etc. */
-    CHEST, /** For items obtained from chests */
-    FREESTANDING, /** For freestanding items (i.e. ITEM00 instances) */
-    NPC, /** For items obtained by talking to NPCs */
-    SKULLTULA, /** For items obtained from dead Golden Skulltulas */
-    GIFT_FROM_SAGES, /** For items obtained out of thin air */
-    OTHER_PLAYERS /** For items obtained from other players, such as in a multiworld run */
-};
-
 #endif
+
+typedef enum ItemObtainMethod{
+    OBTAIN_FROM_DROP, /** For items dropped from pots, enemies, etc. */
+    OBTAIN_FROM_CHEST, /** For items obtained from chests */
+    OBTAIN_FROM_FREESTANDING, /** For freestanding items (i.e. ITEM00 instances) */
+    OBTAIN_FROM_NPC, /** For items obtained by talking to NPCs */
+    OBTAIN_FROM_SKULLTULA, /** For items obtained from dead Golden Skulltulas */
+    OBTAIN_FROM_GIFT_FROM_SAGES, /** For items obtained out of thin air */
+    OBTAIN_FROM_OTHER_PLAYERS /** For items obtained from other players, such as in a multiworld run */
+} ItemObtainMethod;
 
 /**
  * @brief Flags describing how the item give event should be displayed in-game. These can be combined with

@@ -1340,14 +1340,14 @@ static bool QueueItemHandler(std::shared_ptr<LUS::Console> Console, const std::v
     if (tableId == "vanilla") {
         OTRGlobals::Instance->gItemEventQueue->AddItemEvent(
             ItemTableManager::Instance->RetrieveItemEntry(MOD_NONE, id),
-            ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_FullAnimation,
+            OBTAIN_FROM_GIFT_FROM_SAGES, ItemGet_FullAnimation,
             FLAG_NONE,
             0
         );
     } else if (tableId == "randomizer") {
         OTRGlobals::Instance->gItemEventQueue->AddItemEvent(
             Rando::StaticData::RetrieveItem(static_cast<RandomizerGet>(id)).GetGIEntry_Copy(),
-            ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_OverlayText | ItemGet_OverHead,
+            OBTAIN_FROM_GIFT_FROM_SAGES, ItemGet_OverlayText | ItemGet_OverHead,
             FLAG_NONE,
             0
         );

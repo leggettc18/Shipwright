@@ -14,6 +14,7 @@ extern "C" {
     const GetItemEntry* ItemEventQueue_FrontGIEntry();
     uint8_t ItemEventQueue_FrontHasFlags(uint8_t itemGetUIFlags);
     void ItemEventQueue_PopFront();
+    void ItemEventQueue_AddItem(GetItemEntry giEntry, ItemObtainMethod method, FlagType flagType, int16_t flag);
 #ifdef __cplusplus
 }
 

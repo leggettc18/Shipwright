@@ -351,6 +351,10 @@ void EnItem00_Init(Actor* thisx, PlayState* play) {
     s32 getItemId = GI_NONE;
     this->randoGiEntry = (GetItemEntry)GET_ITEM_NONE;
     s16 spawnParam8000 = this->actor.params & 0x8000;
+    // If & 0x4000 returns non-zero, we display item in front of the event queue
+    // over the player's head. In vanilla, this is only ever checked before spawning
+    // the EnItem00 in Item_DropCollectible and the like and never ultimately passed
+    // to Actor_Spawn, so I made use of it for the case of showing Item Event Queue models.
     s16 spawnParam4000 = this->actor.params & 0x4000;
     s32 pad1;
 
@@ -511,6 +515,7 @@ void EnItem00_Init(Actor* thisx, PlayState* play) {
     this->actor.gravity = 0.0f;
 
     if (spawnParam4000) {
+        // Get a Copy of the getItemEntry and setup the ShowModel action.
         EnItem00_SetupAction(this, EnItem00_ShowModel);
         this->randoGiEntry = *ItemEventQueue_FrontGIEntry();
         return;
@@ -772,6 +777,8 @@ void func_8001E5C8(EnItem00* this, PlayState* play) {
     }
 }
 
+// Display the current getItemEntry of this instance bouncing above the player's head
+// and facing the camera.
 void EnItem00_ShowModel(EnItem00* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
     if (this->unk_15A == 0) {
@@ -1030,6 +1037,8 @@ void EnItem00_Draw(Actor* thisx, PlayState* play) {
     EnItem00* this = (EnItem00*)thisx;
     f32 mtxScale;
 
+    // If binary digit from 0x4000 was passed in as a param, draw the getItemEntry
+    // copied from the ItemEventQueue in the init function and return.
     if (this->ogParams & 0x4000) {
         mtxScale = 25.0f;
         Matrix_Scale(mtxScale, mtxScale, mtxScale, MTXMODE_APPLY);
@@ -1587,9 +1596,13 @@ s16 func_8001F404(s16 dropId) {
     return dropId;
 }
 
-EnItem00* Item_ShowModel(PlayState* play, Vec3f* spawnPos, s16 params) {
+// Convenience function for displaying the model of the item at the front of the Item Event Queue
+// Above the player's head. This is done via passing in 0x8000 | 0x4000 as the params. 0x4000 is used
+// in some of the below functions to spawn it differently but that particular binary digit is never
+// normally actually passed to EnItem00, so I made use of it for the Item Event Queue.
+EnItem00* Item_ShowModelFromQueue(PlayState* play, const Vec3f* spawnPos) {
     EnItem00* spawnedActor = (EnItem00*)Actor_Spawn(&play->actorCtx, play, ACTOR_EN_ITEM00, spawnPos->x, spawnPos->y,
-        spawnPos->z, 0, 0, 0, params, true);
+        spawnPos->z, 0, 0, 0, 0x8000 | 0x4000, true);
     return spawnedActor;
 }
 

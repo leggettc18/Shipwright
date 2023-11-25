@@ -1340,7 +1340,7 @@ static bool QueueItemHandler(std::shared_ptr<LUS::Console> Console, const std::v
     if (tableId == "vanilla") {
         OTRGlobals::Instance->gItemEventQueue->AddItemEvent(
             ItemTableManager::Instance->RetrieveItemEntry(MOD_NONE, id),
-            ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_OverlayText | ItemGet_OverHead,
+            ItemObtainMethod::GIFT_FROM_SAGES, ItemGet_FullAnimation,
             FLAG_NONE,
             0
         );

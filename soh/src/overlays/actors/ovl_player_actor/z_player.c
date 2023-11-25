@@ -12684,20 +12684,23 @@ void func_8084DFAC(PlayState* play, Player* this) {
 }
 
 s32 func_8084DFF4(PlayState* play, Player* this) {
-    GetItemEntry* giEntry = ItemEventQueue_FrontGIEntry();
+    GetItemEntry* giEntry;
     s32 temp1;
     s32 temp2;
     static s32 equipItem;
     static bool equipNow;
 
-    if (this->getItemId == GI_NONE && ItemEventQueue_FrontGIEntry() == NULL) {
+    if (ItemEventQueue_FrontGIEntry() != NULL && ItemEventQueue_FrontHasFlags(ItemGet_FullAnimation)) {
+        Player_ObtainItemFromQueue_HandleFullAnimation(this, play);
+        return 0;
+    }
+
+    if (this->getItemId == GI_NONE) {
         return 1;
     }
 
     if (this->unk_84F == 0) {
-        if (giEntry == NULL) {
-            giEntry = ItemTable_RetrievePtr(this->getItemId);
-        }
+        giEntry = ItemTable_RetrievePtr(this->getItemId);
         this->unk_84F = 1;
         equipItem = giEntry->itemId;
         equipNow = CVarGetInteger("gAskToEquip", 0) && giEntry->modIndex == MOD_NONE &&
@@ -15265,6 +15268,7 @@ void Player_ObtainItemFromQueue(Player* this, PlayState* play) {
         // be handling an authentic item first.
         return;
     }
+    // If we should display overlay text on obtaining items.
     if (ItemEventQueue_FrontHasFlags(ItemGet_OverlayText)) {
         char buf[1024];
         if (giEntry->modIndex == MOD_NONE) {
@@ -15274,21 +15278,128 @@ void Player_ObtainItemFromQueue(Player* this, PlayState* play) {
         }
         Overlay_DisplayText_Seconds(5, buf);
     }
+    // Full animation, overrides several of the other options. Notice the Item isn't directly added
+    // to the inventory in this branch, that doesn't happen until the item is actually displayed on screen.
     if (ItemEventQueue_FrontHasFlags(ItemGet_FullAnimation)) {
-        this->stateFlags1 |= PLAYER_STATE1_GETTING_ITEM | PLAYER_STATE1_ITEM_OVER_HEAD | PLAYER_STATE1_IN_CUTSCENE;
-        // func_80832224 but for ItemEventQueue
+        // Setting interactRangeActor and getItemDirection is the signal for the player
+        // to trigger the GetItem Sequence. Actually displaying the textbox and giving the
+        // item normally happens in func_8084DFF4. I've added sort of an escape hatch in that
+        // function out to Player_ObtainItemFromQueue_HandleFullAnimation (see below). There may
+        // be a more direct way to trigger that, but the path from this signal to actually
+        // receiving the item is very convoluted and difficult to follow. For now it's easier
+        // and more reliable to let the game get there and then escape out to where we want to be.
+        this->interactRangeActor = &this->actor;
+        this->getItemDirection = this->actor.shape.rot.y;
     } else {
+        // For everything that's not the full animation, we will want to give the player the item
+        // right away.
         if (giEntry->modIndex == MOD_NONE) {
             Item_Give(play, giEntry->itemId);
         } else {
             Randomizer_Item_Give(play, giEntry);
         }
+        // Branch for displaying the item above the player's head
         if (ItemEventQueue_FrontHasFlags(ItemGet_OverHead)) {
-            s32 sp1C = giEntry->gid;
-            Item_ShowModel(play, &this->actor.world.pos, sp1C | 0xC000);
+            Item_ShowModelFromQueue(play, &this->actor.world.pos);
             func_80078884(NA_SE_SY_GET_ITEM);
         }
+        // After kicking off the item give and the requested display(s) of the item,
+        // remove it from the queue.
         ItemEventQueue_PopFront();
     }
+}
 
+// Mostly a copy of func_8084DFF4 except it references the Item Event queue
+// instead of player->getItemId. We can make any other changes we want here
+// as well without risking affecting the authentic experience.
+void Player_ObtainItemFromQueue_HandleFullAnimation(Player* this, PlayState* play) {
+    GetItemEntry* giEntry = ItemEventQueue_FrontGIEntry();
+    s32 temp1;
+    s32 temp2;
+    static s32 equipItem;
+    static bool equipNow;
+    if (this->unk_84F == 0) {
+        this->unk_84F = 1;
+        equipItem = giEntry->itemId;
+        equipNow = CVarGetInteger("gAskToEquip", 0) && giEntry->modIndex == MOD_NONE &&
+            equipItem >= ITEM_SWORD_KOKIRI && equipItem <= ITEM_TUNIC_ZORA &&
+            CHECK_AGE_REQ_ITEM(equipItem);
+        Message_StartTextbox(play, giEntry->textId, &this->actor);
+        if (!(giEntry->modIndex == MOD_RANDOMIZER && giEntry->itemId == RG_ICE_TRAP)) {
+            if (giEntry->modIndex == MOD_NONE) {
+                // RANDOTOD: Move this into Item_Give() or some other more central location
+                if (giEntry->getItemId == GI_SWORD_BGS) {
+                    gSaveContext.bgsFlag = true;
+                    gSaveContext.swordHealth = 8;
+                }
+                Item_Give(play, giEntry->itemId);
+            } else {
+                Randomizer_Item_Give(play, giEntry);
+            }
+        }
+        if (giEntry->modIndex == MOD_NONE) {
+            if (IS_RANDO) {
+                Audio_PlayFanfare_Rando(giEntry);
+            } else if (((giEntry->itemId >= ITEM_RUPEE_GREEN) && (giEntry->itemId <= ITEM_RUPEE_RED)) ||
+                        ((giEntry->itemId >= ITEM_RUPEE_PURPLE) && (giEntry->itemId <= ITEM_RUPEE_GOLD)) ||
+                        (giEntry->itemId == ITEM_HEART)) {
+                Audio_PlaySoundGeneral(NA_SE_SY_GET_BOXITEM, &D_801333D4, 4, &D_801333E0, &D_801333E0, &D_801333E8);
+                        } else {
+                            if ((giEntry->itemId == ITEM_HEART_CONTAINER) ||
+                                ((giEntry->itemId == ITEM_HEART_PIECE_2) &&
+                                    ((gSaveContext.inventory.questItems & 0xF0000000) == 0x40000000))) {
+                                temp1 = NA_BGM_HEART_GET | 0x900;
+                                    } else {
+                                        temp1 = temp2 =
+                                            (giEntry->itemId == ITEM_HEART_PIECE_2) ? NA_BGM_SMALL_ITEM_GET : NA_BGM_ITEM_GET | 0x900;
+                                    }
+                            Audio_PlayFanfare(temp1);
+                        }
+        } else if (giEntry->modIndex == MOD_RANDOMIZER) {
+            if (IS_RANDO) {
+                Audio_PlayFanfare_Rando(giEntry);
+            } else if (giEntry->itemId == RG_DOUBLE_DEFENSE || giEntry->itemId == RG_MAGIC_SINGLE ||
+                        giEntry->itemId == RG_MAGIC_DOUBLE) {
+                Audio_PlayFanfare(NA_BGM_HEART_GET | 0x900);
+                        } else {
+                            // Just in case something weird happens with MOD_INDEX
+                            Audio_PlayFanfare(NA_BGM_ITEM_GET | 0x900);
+                        }
+        } else {
+            // Just in case something weird happens with modIndex.
+            Audio_PlayFanfare(NA_BGM_ITEM_GET | 0x900);
+        }
+    } else if (equipNow && Message_ShouldAdvanceSilent(play) && Message_GetState(&play->msgCtx) == TEXT_STATE_CHOICE) {
+        if (play->msgCtx.choiceIndex == 0) { // Equip now? Yes
+            if (equipItem >= ITEM_SWORD_KOKIRI && equipItem <= ITEM_SWORD_BGS) {
+                gSaveContext.equips.buttonItems[0] = equipItem;
+                Inventory_ChangeEquipment(EQUIP_TYPE_SWORD, equipItem - ITEM_SWORD_KOKIRI + 1);
+                func_808328EC(this, NA_SE_IT_SWORD_PUTAWAY);
+
+            } else if (equipItem >= ITEM_SHIELD_DEKU && equipItem <= ITEM_SHIELD_MIRROR) {
+                Inventory_ChangeEquipment(EQUIP_TYPE_SHIELD, equipItem - ITEM_SHIELD_DEKU + 1);
+                func_808328EC(&this->actor, NA_SE_IT_SHIELD_REMOVE);
+                Player_SetEquipmentData(play, this);
+
+            } else if (equipItem == ITEM_TUNIC_GORON || equipItem == ITEM_TUNIC_ZORA) {
+                Inventory_ChangeEquipment(EQUIP_TYPE_TUNIC, equipItem - ITEM_TUNIC_KOKIRI + 1);
+                func_808328EC(this, NA_SE_PL_CHANGE_ARMS);
+                Player_SetEquipmentData(play, this);
+            }
+        }
+        equipNow = false;
+        Message_CloseTextbox(play);
+        play->msgCtx.msgMode = MSGMODE_TEXT_DONE;
+    } else {
+        if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+            if (giEntry->drawFunc != NULL) {
+                this->unk_862 = 0;
+            }
+            if (giEntry->itemId == RG_ICE_TRAP && giEntry->modIndex) {
+                this->unk_862 = 0;
+                gSaveContext.pendingIceTrapCount++;
+            }
+            ItemEventQueue_PopFront();
+        }
+    }
 }

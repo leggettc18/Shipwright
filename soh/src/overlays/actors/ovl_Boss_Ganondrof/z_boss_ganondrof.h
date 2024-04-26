@@ -61,7 +61,7 @@ typedef enum {
     /* 13 */ GND_FLOAT_COUNT = 13
 } BossGanondrofF32Var;
 
-// Relocated from z_boss_ganondrof.c
+// SOH [Enhancements] Relocated from z_boss_ganondrof.c to use in time saver.
 typedef enum {
     /* 0 */ NOT_DEAD,
     /* 1 */ DEATH_START,

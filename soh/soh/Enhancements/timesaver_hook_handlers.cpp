@@ -746,6 +746,7 @@ void TimeSaverOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, void*
                 }
             }
             break;
+        }
         case GI_VB_NABOORU_KNUCKLE_DEATH_SCENE: {
             EnIk* ik = static_cast<EnIk*>(opt);
             if (CVarGetInteger("gTimeSavers.SkipCutscene.QuickBossDeaths", IS_RANDO)) {
@@ -768,7 +769,6 @@ void TimeSaverOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, void*
                 *should = false;
             }
             break;
-        }
         }
     }
 }

@@ -27,6 +27,7 @@ extern "C" {
 #include <overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.h>
 #include <overlays/actors/ovl_En_Ik/z_en_ik.h>
 #include <objects/object_gnd/object_gnd.h>
+#include <overlays/actors/ovl_Boss_Tw/z_boss_tw.h>
 extern SaveContext gSaveContext;
 extern PlayState* gPlayState;
 extern int32_t D_8011D3AC;
@@ -767,6 +768,23 @@ void TimeSaverOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, void*
                     Actor_Kill(&ik->actor);
                 }
                 *should = false;
+            }
+            break;
+        }
+        case GI_VB_TWINROVA_DEATH_SCENE: {
+            BossTw* tw = static_cast<BossTw*>(opt);
+            if (CVarGetInteger("gTimeSavers.SkipCutscene.QuickBossDeaths", IS_RANDO || IS_BOSS_RUSH)) {
+                // Skip ahead to last part of the cutscene in rando
+                if (tw->work[CS_TIMER_2] == 10) {
+                    tw->work[CS_TIMER_2] = 860;
+                }
+                // Add separate timings for the "beam" that opens and closes around the sisters
+                // Needed because we skip ahead in cutscene timer value so it never gets called otherwise
+                if (tw->work[CS_TIMER_2] < 900) {
+                    Math_ApproachF(&tw->workf[UNK_F18], 255.0f, 0.1f, 5.0f);
+                } else if (tw->work[CS_TIMER_2] > 910) {
+                    Math_ApproachF(&tw->workf[UNK_F18], 0.0f, 1.0f, 3.0f);
+                }
             }
             break;
         }

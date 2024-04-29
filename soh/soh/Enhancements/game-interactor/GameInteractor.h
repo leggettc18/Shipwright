@@ -381,6 +381,7 @@ typedef enum {
     // Vanilla condition: true
     GI_VB_PHANTOM_GANON_DEATH_SCENE,
     GI_VB_NABOORU_KNUCKLE_DEATH_SCENE,
+    GI_VB_TWINROVA_DEATH_SCENE,
 } GIVanillaBehavior;
 
 #ifdef __cplusplus

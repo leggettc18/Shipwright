@@ -44,7 +44,6 @@
 #include "soh/Enhancements/timesplits/TimeSplits.h"
 #include "soh/Enhancements/randomizer/Plandomizer.h"
 #include "soh/Enhancements/TimeDisplay/TimeDisplay.h"
-#include "soh/AboutWindow.h"
 #include "soh/Enhancements/Autosave.h"
 
 // FA icons are kind of wonky, if they worked how I expected them to the "+ 2.0f" wouldn't be needed, but
@@ -178,15 +177,8 @@ void DrawMenuBarIcon() {
     }
 }
 
-extern std::shared_ptr<AboutWindow> mAboutWindow;
-
 void DrawShipMenu() {
     if (ImGui::BeginMenu("Ship")) {
-        if (mAboutWindow) {
-            if (ImGui::MenuItem("About...")) {
-                mAboutWindow->Show();
-            }
-        }
 
         UIWidgets::Spacer(0);
 

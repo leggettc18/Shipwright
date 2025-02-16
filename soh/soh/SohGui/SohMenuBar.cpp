@@ -44,6 +44,7 @@
 #include "soh/Enhancements/timesplits/TimeSplits.h"
 #include "soh/Enhancements/randomizer/Plandomizer.h"
 #include "soh/Enhancements/TimeDisplay/TimeDisplay.h"
+#include "soh/Enhancements/Autosave.h"
 
 // FA icons are kind of wonky, if they worked how I expected them to the "+ 2.0f" wouldn't be needed, but
 // they don't work how I expect them to so I added that because it looked good when I eyeballed it
@@ -156,6 +157,125 @@ void DrawSettingsMenu() {
                 ImGui::PopStyleVar(3);
             }
         #endif
+
+        #ifndef __WIIU__
+            if (UIWidgets::PaddedEnhancementSliderInt(
+                    (CVarGetInteger(CVAR_MSAA_VALUE, 1) == 1) ? "Anti-aliasing (MSAA): Off" : "Anti-aliasing (MSAA): %d",
+                    "##IMSAA", CVAR_MSAA_VALUE, 1, 8, "", 1, true, true, false)) {
+                Ship::Context::GetInstance()->GetWindow()->SetMsaaLevel(CVarGetInteger(CVAR_MSAA_VALUE, 1));
+            }
+            UIWidgets::Tooltip("Activates MSAA (multi-sample anti-aliasing) from 2x up to 8x, to smooth the edges of rendered geometry.\n"
+                               "Higher sample count will result in smoother edges on models, but may reduce performance.\n\n"
+                               "Recommended: 2x or 4x");
+        #endif
+
+            UIWidgets::PaddedSeparator(true, true, 3.0f, 3.0f);
+            { // FPS Slider
+                const int minFps = 20;
+                static int maxFps;
+                if (Ship::Context::GetInstance()->GetWindow()->GetWindowBackend() == Ship::WindowBackend::FAST3D_DXGI_DX11) {
+                    maxFps = 360;
+                } else {
+                    maxFps = Ship::Context::GetInstance()->GetWindow()->GetCurrentRefreshRate();
+                }
+                int currentFps = fmax(fmin(OTRGlobals::Instance->GetInterpolationFPS(), maxFps), minFps);
+            #ifdef __WIIU__
+                UIWidgets::Spacer(0);
+                // only support divisors of 60 on the Wii U
+                if (currentFps > 60) {
+                    currentFps = 60;
+                } else {
+                    currentFps = 60 / (60 / currentFps);
+                }
+
+                int fpsSlider = 1;
+                if (currentFps == 20) {
+                    ImGui::Text("FPS: Original (20)");
+                } else {
+                    ImGui::Text("FPS: %d", currentFps);
+                    if (currentFps == 30) {
+                        fpsSlider = 2;
+                    } else { // currentFps == 60
+                        fpsSlider = 3;
+                    }
+                }
+                if (CVarGetInteger(CVAR_SETTING("MatchRefreshRate"), 0)) {
+                    UIWidgets::DisableComponent(ImGui::GetStyle().Alpha * 0.5f);
+                }
+
+                if (ImGui::Button(" - ##WiiUFPS")) {
+                    fpsSlider--;
+                }
+                ImGui::SameLine();
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 7.0f);
+
+                UIWidgets::Spacer(0);
+
+                ImGui::PushItemWidth(std::min((ImGui::GetContentRegionAvail().x - 60.0f), 260.0f));
+                ImGui::SliderInt("##WiiUFPSSlider", &fpsSlider, 1, 3, "", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::PopItemWidth();
+
+                ImGui::SameLine();
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 7.0f);
+                if (ImGui::Button(" + ##WiiUFPS")) {
+                    fpsSlider++;
+                }
+
+                if (CVarGetInteger(CVAR_SETTING("MatchRefreshRate"), 0)) {
+                    UIWidgets::ReEnableComponent("");
+                }
+                if (fpsSlider > 3) {
+                    fpsSlider = 3;
+                } else if (fpsSlider < 1) {
+                    fpsSlider = 1;
+                }
+
+                if (fpsSlider == 1) {
+                    currentFps = 20;
+                } else if (fpsSlider == 2) {
+                    currentFps = 30;
+                } else if (fpsSlider == 3) {
+                    currentFps = 60;
+                }
+                CVarSetInteger(CVAR_SETTING("InterpolationFPS"), currentFps);
+                Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
+            #else
+                bool matchingRefreshRate =
+                    CVarGetInteger(CVAR_SETTING("MatchRefreshRate"), 0) && Ship::Context::GetInstance()->GetWindow()->GetWindowBackend() != Ship::WindowBackend::FAST3D_DXGI_DX11;
+                UIWidgets::PaddedEnhancementSliderInt(
+                    (currentFps == 20) ? "Frame Rate: Original (20 fps)" : "Frame Rate: %d fps",
+                    "##FPSInterpolation", CVAR_SETTING("InterpolationFPS"), minFps, maxFps, "", 20, true, true, false, matchingRefreshRate);
+            #endif
+                if (Ship::Context::GetInstance()->GetWindow()->GetWindowBackend() == Ship::WindowBackend::FAST3D_DXGI_DX11) {
+                    UIWidgets::Tooltip(
+                        "Uses Matrix Interpolation to create extra frames, resulting in smoother graphics.\n"
+                        "This is purely visual and does not impact game logic, execution of glitches etc.\n"
+                        "Higher frame rate settings may impact CPU performance."
+                        "\n\n " ICON_FA_INFO_CIRCLE 
+                        " There is no need to set this above your monitor's refresh rate. Doing so will waste resources and may give a worse result.");
+                } else {
+                    UIWidgets::Tooltip(
+                        "Uses Matrix Interpolation to create extra frames, resulting in smoother graphics.\n"
+                        "This is purely visual and does not impact game logic, execution of glitches etc.\n"
+                        "Higher frame rate settings may impact CPU performance.");
+                }
+            } // END FPS Slider
+
+            if (Ship::Context::GetInstance()->GetWindow()->GetWindowBackend() == Ship::WindowBackend::FAST3D_DXGI_DX11) {
+                UIWidgets::Spacer(0);
+                if (ImGui::Button("Match Frame Rate to Refresh Rate")) {
+                    int hz = Ship::Context::GetInstance()->GetWindow()->GetCurrentRefreshRate();
+                    if (hz >= 20 && hz <= 360) {
+                        CVarSetInteger(CVAR_SETTING("InterpolationFPS"), hz);
+                        Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
+                    }
+                }
+            } else {
+                UIWidgets::PaddedEnhancementCheckbox("Match Frame Rate to Refresh Rate", CVAR_SETTING("MatchRefreshRate"), true, false);
+            }
+            UIWidgets::Tooltip("Matches interpolation value to the game window's current refresh rate.");
+
+            UIWidgets::PaddedSeparator(true, true, 3.0f, 3.0f);
 
             ImGui::Text("ImGui Menu Scale");
             ImGui::SameLine();

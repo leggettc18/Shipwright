@@ -45,15 +45,26 @@ void DrawEntrancePoly(std::vector<Gfx>& dl, CollisionHeader* col, int32_t bgId) 
     uint32_t lastColorR = color.r;
     uint32_t lastColorG = color.g;
     uint32_t lastColorB = color.b;
+    uint32_t exitIndex;
 
     dl.push_back(gsDPSetPrimColor(0, 0, color.r, color.g, color.b, 255));
     bool previousPoly = false;
     for (int i = 0; i < col->numPolygons; i++) {
         CollisionPoly* poly = &col->polyList[i];
-        if (SurfaceType_GetSceneExitIndex(&gPlayState->colCtx, poly, bgId) ||
+        if ((exitIndex = SurfaceType_GetSceneExitIndex(&gPlayState->colCtx, poly, bgId)) ||
             func_80041E80(&gPlayState->colCtx, poly, bgId) == 0x05) {
-                // TODO: Check if entrance has been traversed before and draw different colors
-                color = CVarGetColor(CVAR_DEVELOPER_TOOLS("ColViewer.ColorEntrance"), {0, 255, 0, 255});
+                color = {0, 0, 255, 255};
+                if (exitIndex > 0) {
+                    int16_t nextEntranceIndex = gPlayState->setupExitList[exitIndex - 1];
+                    if (nextEntranceIndex == ENTR_RETURN_GROTTO) {
+                        return;
+                        // TODO: extern the grottoId from randomizer_grotto and use that to get the
+                        // actual nextEntranceIndex;
+                    }
+                    if (Entrance_GetIsEntranceDiscovered(nextEntranceIndex)) {
+                        color = {0, 255, 0, 255};
+                    }
+                }
                 if (color.r != lastColorR || color.g != lastColorG || color.b != lastColorB) {
                     if (previousPoly) {
                         dl.push_back(gsSPVertex((uintptr_t)&vtxDl.at(vtxDl.size() -3), 3, 0));

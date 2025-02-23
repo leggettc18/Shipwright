@@ -29,6 +29,7 @@ void Grotto_InitExitAndLoadLists(void);
 void Grotto_SetExitOverride(s16 originalIndex, s16 overrideIndex);
 void Grotto_SetLoadOverride(s16 originalIndex, s16 overrideIndex);
 s16 Grotto_GetEntranceValueHandlingGrottoRando(s16 nextEntranceIndex);
+s8 Grotto_GetCurrentGrottoId();
 s16 Grotto_OverrideSpecialEntrance(s16 nextEntranceIndex);
 void Grotto_OverrideActorEntrance(Actor* thisx);
 void Grotto_ForceGrottoReturnOnSpecialEntrance(void);

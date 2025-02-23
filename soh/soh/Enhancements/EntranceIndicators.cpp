@@ -9,6 +9,7 @@ extern "C" {
 #include <macros.h>
 #include <variables.h>
 #include <functions.h>
+#include "randomizer/randomizer_grotto.h"
 extern PlayState* gPlayState;
 }
 
@@ -57,9 +58,8 @@ void DrawEntrancePoly(std::vector<Gfx>& dl, CollisionHeader* col, int32_t bgId) 
                 if (exitIndex > 0) {
                     int16_t nextEntranceIndex = gPlayState->setupExitList[exitIndex - 1];
                     if (nextEntranceIndex == ENTR_RETURN_GROTTO) {
-                        return;
-                        // TODO: extern the grottoId from randomizer_grotto and use that to get the
-                        // actual nextEntranceIndex;
+                        int8_t grottoId = Grotto_GetCurrentGrottoId();
+                        nextEntranceIndex = ENTRANCE_GROTTO_EXIT_START + grottoId;
                     }
                     if (Entrance_GetIsEntranceDiscovered(nextEntranceIndex)) {
                         color = {0, 255, 0, 255};

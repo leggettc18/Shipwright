@@ -1088,14 +1088,23 @@ void CheckTrackerWindow::DrawElement() {
             std::string checkSearchText = checkSearch.InputBuf;
             checkSearchText.erase(std::remove(checkSearchText.begin(), checkSearchText.end(), ' '),
                                   checkSearchText.end());
-            ImGui::SameLine();
-            if (UIWidgets::Button(ICON_FA_ERASER, UIWidgets::ButtonOptions()
-                                                      .Size(UIWidgets::Sizes::Inline)
-                                                      .Color(THEME_COLOR)
-                                                      .Padding(ImVec2(10.f, 6.f)))) {
-                checkSearch.Clear();
-                UpdateFilters();
-                doAreaScroll = true;
+            if (checkSearchText.empty()) {
+                ImGui::SameLine();
+                if (UIWidgets::Button(ICON_FA_ARROWS_V, UIWidgets::ButtonOptions()
+                                                            .Size(UIWidgets::Sizes::Inline)
+                                                            .Color(THEME_COLOR)
+                                                            .Padding(ImVec2(10.f, 6.f)))) {
+                    doAreaScroll = true;
+                }
+            } else {
+                ImGui::SameLine();
+                if (UIWidgets::Button(ICON_FA_TIMES, UIWidgets::ButtonOptions()
+                                                          .Size(UIWidgets::Sizes::Inline)
+                                                          .Color(THEME_COLOR)
+                                                          .Padding(ImVec2(10.f, 6.f)))) {
+                    checkSearch.Clear();
+                    UpdateFilters();
+                }
             }
             if (checkSearchText.length() < 1) {
                 ImGui::SameLine(20.0f);

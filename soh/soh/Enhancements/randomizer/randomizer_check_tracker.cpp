@@ -110,6 +110,8 @@ static bool presetLoaded = false;
 static ImVec2 presetPos;
 static ImVec2 presetSize;
 
+static const char* waitingText = "Waiting for file load...";
+
 std::map<uint32_t, RandomizerCheck> startingShopItem = {
     { SCENE_KOKIRI_SHOP, RC_KF_SHOP_ITEM_1 },
     { SCENE_BAZAAR, RC_MARKET_BAZAAR_ITEM_1 },
@@ -1017,7 +1019,14 @@ void CheckTrackerWindow::DrawElement() {
             static_cast<TrackerWindowType>(CVarGetInteger(CVAR_TRACKER_CHECK("WindowType"), TRACKER_WINDOW_WINDOW)),
             CVarGetInteger(CVAR_TRACKER_CHECK("Draggable"), 1), ImGuiWindowFlags_NoScrollbar)) {
         if (!GameInteractor::IsSaveLoaded() || !initialized) {
-            ImGui::Text("Waiting for file load..."); // TODO Language
+            auto windowSize = ImGui::GetWindowSize();
+            auto textWidth = ImGui::CalcTextSize(waitingText).x;
+
+            ImGui::SetCursorPosX((windowSize.x - textWidth) * 0.5f);
+            ImGui::SetCursorPosY(windowSize.y * 0.5f);
+            ImGui::PushStyleColor(ImGuiCol_Text, UIWidgets::ColorValues[UIWidgets::Colors::Gray]);
+            ImGui::Text("%s", waitingText); // TODO Language
+            ImGui::PopStyleColor();
             Trackers::EndFloatWindows();
             return;
         }

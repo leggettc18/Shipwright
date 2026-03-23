@@ -1104,6 +1104,7 @@ void CheckTrackerWindow::DrawElement() {
                                                           .Padding(ImVec2(10.f, 6.f)))) {
                     checkSearch.Clear();
                     UpdateFilters();
+                    doAreaScroll = true;
                 }
             }
             if (checkSearchText.length() < 1) {

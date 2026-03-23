@@ -1099,9 +1099,9 @@ void CheckTrackerWindow::DrawElement() {
             } else {
                 ImGui::SameLine();
                 if (UIWidgets::Button(ICON_FA_TIMES, UIWidgets::ButtonOptions()
-                                                          .Size(UIWidgets::Sizes::Inline)
-                                                          .Color(THEME_COLOR)
-                                                          .Padding(ImVec2(10.f, 6.f)))) {
+                                                         .Size(UIWidgets::Sizes::Inline)
+                                                         .Color(THEME_COLOR)
+                                                         .Padding(ImVec2(10.f, 6.f)))) {
                     checkSearch.Clear();
                     UpdateFilters();
                     doAreaScroll = true;

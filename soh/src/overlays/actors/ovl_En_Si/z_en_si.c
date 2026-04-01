@@ -140,8 +140,10 @@ void func_80AFB950(EnSi* this, PlayState* play) {
         GameInteractor_Should(VB_FREEZE_ON_SKULL_TOKEN, true)) {
         player->actor.freezeTimer = 10;
     } else {
-        SET_GS_FLAGS((this->actor.params & 0x1F00) >> 8, this->actor.params & 0xFF);
-        GameInteractor_ExecuteOnFlagSet(FLAG_GS_TOKEN, this->actor.params);
+        if (GameInteractor_Should(VB_SET_GS_FLAG, (this->actor.params & 0xFF) != 0, this)) {
+            SET_GS_FLAGS((this->actor.params & 0x1F00) >> 8, this->actor.params & 0xFF);
+            GameInteractor_ExecuteOnFlagSet(FLAG_GS_TOKEN, this->actor.params);
+        }
         Actor_Kill(&this->actor);
     }
 }

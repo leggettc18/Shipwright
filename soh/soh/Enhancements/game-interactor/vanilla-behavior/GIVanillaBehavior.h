@@ -2835,7 +2835,24 @@ typedef enum {
     // ```
     // #### `args`
     // - `*int32_t (camId)`
-    VB_SHOULD_LOAD_BG_IMAGE
+    VB_SHOULD_LOAD_BG_IMAGE,
+
+    // #### `result`
+    // ```c
+    // true
+    // ```
+    // #### `args`
+    // - `*EnSw (this)`
+    // - `*EnSi (temp_v0)`
+    VB_TRANSFER_RANDO_IDENTITY_TO_TOKEN,
+
+    // #### `result`
+    // ```c
+    // this->actor.params & 0xFF != 0
+    // ```
+    // #### `args`
+    // - `*EnSi`
+    VB_SET_GS_FLAG
 } GIVanillaBehavior;
 
 #endif

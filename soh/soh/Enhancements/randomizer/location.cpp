@@ -448,6 +448,23 @@ Rando::Location Rando::Location::GSToken(RandomizerCheck rc, RandomizerCheckQues
              SpoilerCollectionCheck(SPOILER_CHK_GOLD_SKULLTULA, skullScene_, flag_) };
 }
 
+Rando::Location Rando::Location::CustomGSToken(RandomizerCheck rc, RandomizerCheckQuest quest_, RandomizerCheckArea area_,
+                                               SceneID scene_, int32_t actorParams_, RandomizerInf flag_,
+                                               std::string&& shortName_, const RandomizerHintTextKey hintKey) {
+    return { rc,
+             quest_,
+             RCTYPE_SKULL_TOKEN,
+             area_,
+             ACTOR_EN_SI,
+             scene_,
+             actorParams_,
+             std::move(shortName_),
+             hintKey,
+             RG_GOLD_SKULLTULA_TOKEN,
+             true,
+             SpoilerCollectionCheck::RandomizerInf(flag_) };
+}
+
 Rando::Location Rando::Location::OtherHint(RandomizerCheck rc, RandomizerCheckQuest quest_, RandomizerCheckArea area_,
                                            ActorID actorId_, SceneID scene_, std::string&& shortName_,
                                            std::string&& spoilerName_) {

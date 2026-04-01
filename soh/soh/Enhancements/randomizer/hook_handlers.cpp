@@ -1886,9 +1886,6 @@ void RandomizerOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_l
         case VB_CHEST_USE_ICE_EFFECT:
             *should = false;
             break;
-        case VB_GIVE_ITEM_SKULL_TOKEN:
-            *should = (Rando::Context::GetInstance()->GetOption(RSK_SHUFFLE_TOKENS).Is(RO_TOKENSANITY_OFF));
-            break;
         default:
             break;
     }
@@ -2006,17 +2003,6 @@ void RandomizerAfterSceneCommandsHandler(int16_t sceneNum) {
     }
 }
 
-void EnSi_DrawRandomizedItem(EnSi* enSi, PlayState* play) {
-    GetItemEntry randoItem = enSi->sohGetItemEntry;
-    if (CVarGetInteger(CVAR_RANDOMIZER_ENHANCEMENT("MysteriousShuffle"), 0)) {
-        randoItem = GET_ITEM_MYSTERY;
-    }
-    func_8002ED80(&enSi->actor, play, 0);
-    func_8002EBCC(&enSi->actor, play, 0);
-    EnItem00_CustomItemsParticles(&enSi->actor, play, randoItem);
-    GetItemEntry_Draw(play, randoItem);
-}
-
 u32 EnDns_RandomizerPurchaseableCheck(EnDns* enDns) {
     auto checkIdentity = ObjectExtension::GetInstance().Get<ScrubIdentity>(enDns);
     if (checkIdentity != nullptr && Flags_GetRandomizerInf(checkIdentity->identity.randomizerInf)) {
@@ -2091,17 +2077,6 @@ void RandomizerOnActorInitHandler(void* actorRef) {
                     Flags_SetSwitch(gPlayState, 0x37);
                 }
                 break;
-        }
-    }
-
-    if (actor->id == ACTOR_EN_SI) {
-        RandomizerCheck rc =
-            OTRGlobals::Instance->gRandomizer->GetCheckFromActor(actor->id, gPlayState->sceneNum, actor->params);
-        if (rc != RC_UNKNOWN_CHECK) {
-            EnSi* enSi = static_cast<EnSi*>(actorRef);
-            enSi->sohGetItemEntry = Rando::Context::GetInstance()->GetFinalGIEntry(
-                rc, true, (GetItemID)Rando::StaticData::GetLocation(rc)->GetVanillaItem());
-            actor->draw = (ActorFunc)EnSi_DrawRandomizedItem;
         }
     }
 

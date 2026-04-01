@@ -632,6 +632,7 @@ void func_80B0D878(EnSw* this, PlayState* play) {
         if (temp_v0 != NULL) {
             temp_v0->parent = NULL;
         }
+        GameInteractor_Should(VB_TRANSFER_RANDO_IDENTITY_TO_TOKEN, true, this, temp_v0);
         Actor_Kill(&this->actor);
         return;
     }

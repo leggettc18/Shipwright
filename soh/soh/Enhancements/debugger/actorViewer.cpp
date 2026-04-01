@@ -1,5 +1,6 @@
 #include "actorViewer.h"
 #include "../../util.h"
+#include "soh/ObjectExtension/ActorSpawnData.h"
 #include "soh/SohGui/UIWidgets.hpp"
 #include "soh/SohGui/SohGui.hpp"
 #include "soh/ActorDB.h"
@@ -970,6 +971,7 @@ void ActorViewerWindow::DrawElement() {
                         ImGui::Text("ID: %d", display->id);
                         ImGui::Text("Parameters: %d", display->params);
                         ImGui::Text("Actor List Index: %d", GetActorListIndex(display));
+                        ImGui::Text("Actor Spawn Params (hex): %#X", (uint16_t)GetActorSpawnData(display));
                     },
                     "Selected Actor");
                 ImGui::SameLine();

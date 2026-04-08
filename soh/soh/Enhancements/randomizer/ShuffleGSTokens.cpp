@@ -1,3 +1,5 @@
+#include "soh/ActorDB.h"
+#include "soh/Enhancements/randomizer/randomizerTypes.h"
 #include "soh/OTRGlobals.h"
 #include "soh/ObjectExtension/ObjectExtension.h"
 #include "draw.h"
@@ -9,13 +11,15 @@ extern "C" {
 #include "overlays/actors/ovl_En_Sw/z_en_sw.h"
   extern PlayState* gPlayState;
   Actor* Actor_SpawnEntry(ActorContext* actorCtx, ActorEntry* actorEntry, PlayState* play);
+  s32 Object_Spawn(ObjectContext* objectCtx, s16 objectId);
+  ActorDBEntry* ActorDB_Retrieve(const int id);
 }
 
 
 class GSActor {
   public:
-    GSActor(SceneID scene, LinkAge age, RandomizerInf flag, RandomizerCheck check, Vec3s pos, Vec3s rot, s16 params)
-      : mScene(scene), mAge(age), mFlag(flag), mCheck(check) {
+    GSActor(SceneID scene, LinkAge age, int room, RandomizerInf flag, RandomizerCheck check, Vec3s pos, Vec3s rot, s16 params)
+      : mScene(scene), mAge(age), mRoom(room), mFlag(flag), mCheck(check) {
         mActorEntry = { ACTOR_EN_SW, pos, rot, params };
       }
 
@@ -29,6 +33,10 @@ class GSActor {
 
     LinkAge GetAge() {
       return mAge;
+    }
+
+    int GetRoom() {
+      return mRoom;
     }
 
     RandomizerCheck GetCheck() {
@@ -46,23 +54,28 @@ class GSActor {
   private:
     SceneID mScene;
     LinkAge mAge;
+    int mRoom;
     RandomizerInf mFlag;
     RandomizerCheck mCheck;
     ActorEntry mActorEntry;
 };
 
-#define NUM_CUSTOM_GS_ACTORS 3
+#define NUM_CUSTOM_GS_ACTORS 5
 
 std::array<GSActor, NUM_CUSTOM_GS_ACTORS> customGSActors = {
-  GSActor(SCENE_KOKIRI_FOREST, LINK_AGE_CHILD, RAND_INF_KF_CGS_LINKS_HOUSE_CHILD, RC_KF_CGS_LINKS_HOUSE_CHILD, {-160, 40, 1214}, {0, 0, 0}, 0xAD00),
-  GSActor(SCENE_KAKARIKO_VILLAGE, LINK_AGE_ADULT, RAND_INF_KAK_CGS_WINDMILL_ALCOVE, RC_KAK_CGS_WINDMILL_ALCOVE, {1297, 902, 631}, {0, 0, 0}, 0xB100),
-  GSActor(SCENE_OUTSIDE_GANONS_CASTLE, LINK_AGE_ADULT, RAND_INF_OGC_CGS_BEHIND_OBELISK, RC_OGC_CGS_BEHIND_OBELISK, {3008, 1400, 515}, {0, 0, 0}, 0x8F00)
+  GSActor(SCENE_KOKIRI_FOREST, LINK_AGE_CHILD, 0, RAND_INF_KF_CGS_LINKS_HOUSE_CHILD, RC_KF_CGS_LINKS_HOUSE_CHILD, {-160, 40, 1214}, {0, 0, 0}, 0xAD00),
+  GSActor(SCENE_KOKIRI_FOREST, LINK_AGE_ADULT, 0, RAND_INF_KF_CGS_LINKS_HOUSE_ADULT, RC_KF_CGS_LINKS_HOUSE_ADULT, {-160, 40, 1214}, {0, 0, 0}, 0xAD00),
+  GSActor(SCENE_KOKIRI_FOREST, LINK_AGE_CHILD, 1, RAND_INF_KF_CGS_BEHIND_DEKU_TREE_CHILD, RC_KF_CGS_BEHIND_DEKU_TREE_CHILD, { 4855, -154, -2182 }, {0, 0, 0}, 0xAD00),
+  GSActor(SCENE_KAKARIKO_VILLAGE, LINK_AGE_ADULT, 0, RAND_INF_KAK_CGS_WINDMILL_ALCOVE, RC_KAK_CGS_WINDMILL_ALCOVE, {1297, 902, 631}, {0, 0, 0}, 0xB100),
+  GSActor(SCENE_OUTSIDE_GANONS_CASTLE, LINK_AGE_ADULT, 0, RAND_INF_OGC_CGS_BEHIND_OBELISK, RC_OGC_CGS_BEHIND_OBELISK, {3008, 1400, 515}, {0, 0, 0}, 0x8F00)
 };
 
 void SpawnCustomGSActors() {
   ActorContext* actorCtx = &gPlayState->actorCtx;
   for (GSActor& gsActor : customGSActors) {
-    if (gPlayState->sceneNum == gsActor.GetScene() && gSaveContext.linkAge == gsActor.GetAge()) {
+    if (gPlayState->sceneNum == gsActor.GetScene() && gSaveContext.linkAge == gsActor.GetAge() && gPlayState->roomCtx.curRoom.num == gsActor.GetRoom()) {
+      ActorDBEntry* dbEntry = ActorDB_Retrieve(ACTOR_EN_SW);
+      Object_Spawn(&gPlayState->objectCtx, dbEntry->objectId);
       Actor* actor = Actor_SpawnEntry(actorCtx, gsActor.GetActorEntryPtr(), gPlayState);
       ObjectExtension::GetInstance().Set<CheckIdentity>(actor, std::move(gsActor.GetIdentity()));
     }

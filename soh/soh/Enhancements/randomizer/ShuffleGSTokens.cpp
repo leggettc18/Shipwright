@@ -3,6 +3,7 @@
 #include "soh/OTRGlobals.h"
 #include "soh/ObjectExtension/ObjectExtension.h"
 #include "draw.h"
+#include "z64scene.h"
 
 extern "C" {
 #include "variables.h"
@@ -18,9 +19,9 @@ extern "C" {
 
 class GSActor {
   public:
-    GSActor(SceneID scene, LinkAge age, int room, RandomizerInf flag, RandomizerCheck check, Vec3s pos, s16 params)
+    GSActor(SceneID scene, LinkAge age, int room, RandomizerInf flag, RandomizerCheck check, Vec3s pos, int params)
       : mScene(scene), mAge(age), mRoom(room), mFlag(flag), mCheck(check) {
-        mActorEntry = { ACTOR_EN_SW, pos, {0, 0, 0}, params };
+        mActorEntry = { ACTOR_EN_SW, pos, {0, 0, 0}, static_cast<int16_t>(params) };
       }
 
     ActorEntry* GetActorEntryPtr() {
@@ -60,7 +61,7 @@ class GSActor {
     ActorEntry mActorEntry;
 };
 
-#define NUM_CUSTOM_GS_ACTORS 14
+#define NUM_CUSTOM_GS_ACTORS 100
 
 // Gold Skulltula Spawn Params
 #define GS_NIGHT 0xA000 // Spawn Gold Skulltula only at Night
@@ -89,7 +90,7 @@ class GSActor {
 #define GS_GF 0x1500 // Gerudo Fortress
 #define GS_DS 0x1600 // Desert Colossus, Haunted Wasteland
 
-std::array<GSActor, NUM_CUSTOM_GS_ACTORS> customGSActors = {
+std::vector<GSActor> customGSActors = {
   GSActor(SCENE_KOKIRI_FOREST, LINK_AGE_CHILD, 0, RAND_INF_KF_CGS_LINKS_HOUSE_CHILD, RC_KF_CGS_LINKS_HOUSE_CHILD, {-160, 40, 1214}, GS_NIGHT | GS_KF),
   GSActor(SCENE_KOKIRI_FOREST, LINK_AGE_ADULT, 0, RAND_INF_KF_CGS_LINKS_HOUSE_ADULT, RC_KF_CGS_LINKS_HOUSE_ADULT, {-160, 40, 1214}, GS_NIGHT | GS_KF),
   GSActor(SCENE_KOKIRI_FOREST, LINK_AGE_CHILD, 1, RAND_INF_KF_CGS_BEHIND_DEKU_TREE_CHILD, RC_KF_CGS_BEHIND_DEKU_TREE_CHILD, { 4855, -154, -2182 }, GS_NIGHT | GS_KF),
